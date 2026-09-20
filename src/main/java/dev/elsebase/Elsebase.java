@@ -24,7 +24,6 @@ public final class Elsebase {
         container.registerConfig(ModConfig.Type.COMMON, Settings.SPEC);
         bus.addListener(Network::register);
         bus.addListener(Themes::register);
-        bus.addListener(IntegrationTests::register);
         NeoForge.EVENT_BUS.register(new ServerEvents());
         LOGGER.info("Elsebase initialized: persistent rooms, bounded portal previews and safe travel");
     }

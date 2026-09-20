@@ -115,9 +115,11 @@ public final class WorldState extends SavedData {
     public static WorldState load(CompoundTag tag, HolderLookup.Provider registries) {
         int version = tag.getInt("version");
         if (version != 4) throw new IllegalStateException("Unsupported Elsebase save version; create a new test world for this development build");
+        SavedFields.require(tag,"radius",Tag.TAG_INT); SavedFields.require(tag,"spacing",Tag.TAG_INT);
         var data = new WorldState(); data.radius = tag.getInt("radius"); data.spacing = tag.getInt("spacing");
-        for (Tag value : tag.getList("homes", Tag.TAG_COMPOUND)) {
+        for (Tag value : SavedFields.rows(tag,"homes")) {
             CompoundTag h = (CompoundTag) value;
+            SavedFields.require(h,"slotX",Tag.TAG_INT); SavedFields.require(h,"slotZ",Tag.TAG_INT);
             Endpoint ref = Endpoint.load(h.getCompound("reference"));
             if (!ref.inner()) throw new IllegalStateException("Home outside Backdoor");
             if (!h.contains("anchor", Tag.TAG_LONG)) throw new IllegalStateException("Missing reference anchor");
@@ -125,23 +127,34 @@ public final class WorldState extends SavedData {
                     BlockPos.of(h.getLong("anchor")));
             if (data.homes.put(h.getUUID("owner"), home) != null) throw new IllegalStateException("Duplicate saved home");
         }
-        for (Tag value : tag.getList("portals", Tag.TAG_COMPOUND)) {
+        for (Tag value : SavedFields.rows(tag,"portals")) {
             PortalPair pair = PortalPair.load((CompoundTag) value);
             if (data.pairs.put(pair.id(), pair) != null) throw new IllegalStateException("Duplicate saved portal");
         }
-        for (Tag value : tag.getList("returns",Tag.TAG_COMPOUND)) {
+        for (Tag value : SavedFields.rows(tag,"returns")) {
             CompoundTag saved = (CompoundTag)value;
             Endpoint endpoint = Endpoint.load(saved);
             if (endpoint.inner() || data.returns.put(saved.getUUID("owner"),endpoint)!=null)
                 throw new IllegalStateException("Invalid saved return destination");
         }
-        for (Tag value : tag.getList("lifetimes",Tag.TAG_COMPOUND)) {
+        for (Tag value : SavedFields.rows(tag,"lifetimes")) {
             var saved = (CompoundTag)value;
+            SavedFields.require(saved,"expires",Tag.TAG_LONG); SavedFields.require(saved,"inside",Tag.TAG_BYTE);
             UUID id = saved.getUUID("pair");
             var pair = data.pairs.get(id);
             if (pair==null || pair.permanent() || saved.getLong("expires")<0
                     || data.lifetimes.put(id,new InstantExpiry.State(saved.getLong("expires"),saved.getBoolean("inside")))!=null)
                 throw new IllegalStateException("Invalid instant portal lifetime");
+        }
+        if(data.radius==0 && data.spacing==0) {
+            if(!data.homes.isEmpty()) throw new IllegalStateException("Reserved homes lack their allocation grid");
+        } else {
+            new SlotAllocator(data.radius,data.spacing);
+            for(Home home:data.homes.values()) {
+                long x=home.slot().x(),z=home.slot().z();
+                if(Math.floorMod(x-8,data.spacing)!=0 || Math.floorMod(z-8,data.spacing)!=0 || x*x+z*z>(long)data.radius*data.radius)
+                    throw new IllegalStateException("Saved reservation is outside its allocation grid");
+            }
         }
         Set<SlotAllocator.Slot> reserved = new HashSet<>();
         for (Home h : data.homes.values()) if (!reserved.add(h.slot())) throw new IllegalStateException("Duplicate reserved slot");

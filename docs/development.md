@@ -1,5 +1,7 @@
 # Development and verification
 
+Current pre-1.0 audit and repeatable artifact checks: [release readiness](release-readiness.md). `build` now verifies the packaged JAR, excluding development fixtures and checking generated language encoding.
+
 ## Template verification
 
 Theme/portal maintenance: `build` and all 24 GameTests pass, covering owner-only theme deletion, persisted library cleanup, fallback bindings, narrow unsupported portal placement at chunk edges and immediate cleanup when either half is mined. The actual-client template fixture verifies confirmed deletion, button separation and visible theme pixels after dimension reentry. It also asserts dimension policy at level creation, before initial chunk compilation. Vanilla portal checks pass for live snapshots, custom floor appearance, reload, transition screens and fallback. The updated template fixture also passes with Iris/Sodium and shaders disabled. Active-shader fixtures were not rerun for this maintenance change. Checks remain silent and leave the cursor free.

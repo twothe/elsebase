@@ -30,6 +30,8 @@ Elsebase implements a permanent workspace dimension with chunk-aligned rooms, re
 
 ## Documentation Index
 
+- [Pre-1.0 audit](docs/release-readiness.md): resolved defects, release packaging checks, repeatable verification and remaining publication/integration decisions.
+
 - [Surface templates](docs/surface-templates.md): scanner, libraries, live styles, persistent import blocks, authority, rendering budgets and verification.
 - [Current in-game themes](docs/current-theme-gallery.md): actual client screenshots of all seven approved block-pattern themes, including ceiling views.
 - [Vanilla theme proposals](docs/vanilla-theme-proposals.md): seven new material/layout studies; runtime theme changes require the user's explicit go. Never compress proposal images into block textures.
@@ -76,3 +78,6 @@ Elsebase implements a permanent workspace dimension with chunk-aligned rooms, re
 
 - Paint deletion is owner-only, confirmed and removes server-library/current-world references; built-ins and foreign themes remain protected. Keep secondary default/delete actions below the preview, separate from Select/Cancel.
 - Portal placement requires only the 1x2 body. Half cleanup must respect WorldEdits staging/rollback; never delete the counterpart unconditionally in onRemove. Initialize client appearance policy at level creation and requeue cached styles when destination chunks arrive.
+
+- Saved collection/coordinate reads must reject missing or wrongly typed NBT; never interpret damaged saved registries as empty. New preview subscriptions and chunk watches must renew appearance delivery even if earlier packets were already sent.
+- `build` includes `verifyReleaseJar`: development fixtures must stay out of the distributed artifact. Run `tools/check-release-jar.py` after build/GameTests to verify packaged dedicated-server startup, save and restart.

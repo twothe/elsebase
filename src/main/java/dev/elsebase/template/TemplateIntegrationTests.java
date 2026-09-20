@@ -137,6 +137,7 @@ public final class TemplateIntegrationTests {
         helper.assertTrue(lower.panel().floor()==64 && lower.panel().side()==Direction.UP,"Bottom slab face belongs to lower ceiling");
         helper.assertTrue(upper.panel().floor()==72 && upper.panel().side()==Direction.DOWN,"Top slab face belongs to upper floor");
         var faces=state.column(server,-2,3); helper.assertTrue(faces[lower.index()].equals("test/stone#ceiling") && !faces[upper.index()].equals("test/stone#ceiling"),"Shared slab does not mix styles");
+        for(int index=0;index<96;index++) helper.assertTrue(faces[index].equals(state.surface(server,-2,3,index)),"Single-surface resolver matches full column: "+index);
         var restored=TemplateState.load(state.save(new net.minecraft.nbt.CompoundTag(),server.registryAccess()),server.registryAccess());
         helper.assertTrue(Arrays.equals(faces,restored.column(server,-2,3)),"Bindings and definitions survive world save");
         state.bind(lower.panel(),""); helper.assertTrue(!state.column(server,-2,3)[lower.index()].equals("test/stone#ceiling"),"Explicit reset follows default");

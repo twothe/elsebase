@@ -53,7 +53,7 @@ public final class TemplateServer {
     }
     public static void watch(ServerPlayer player,ChunkPos chunk,boolean watching) {
         if(!player.connection.hasChannel(TemplateProtocol.Reply.TYPE)) return;
-        if(watching) { WATCHED.computeIfAbsent(player.getUUID(),id -> new HashSet<>()).add(chunk.toLong()); enqueue(new Delivery(player.getUUID(),chunk.toLong())); }
+        if(watching) { SENT.remove(new Delivery(player.getUUID(),chunk.toLong())); WATCHED.computeIfAbsent(player.getUUID(),id -> new HashSet<>()).add(chunk.toLong()); enqueue(new Delivery(player.getUUID(),chunk.toLong())); }
         else { WATCHED.getOrDefault(player.getUUID(),Collections.emptySet()).remove(chunk.toLong()); SENT.remove(new Delivery(player.getUUID(),chunk.toLong())); }
     }
     public static void tick(MinecraftServer server) {
@@ -75,6 +75,10 @@ public final class TemplateServer {
     private static void enqueue(Delivery delivery) {
         var chunks=PENDING.get(delivery.player); if(chunks==null) { chunks=new LinkedHashSet<>(); PENDING.put(delivery.player,chunks); READY.add(delivery.player); }
         chunks.add(delivery.chunk);
+    }
+    /** A fresh preview has no guaranteed column cache; invalidate only its bounded destination footprint. */
+    public static void forgetColumns(UUID player,Collection<ChunkPos> columns) {
+        for(var column:columns) SENT.remove(new Delivery(player,column.toLong()));
     }
     /** Also used only after preview ownership/distance validation; this publishes appearance, never world block contents. */
     public static void syncColumn(ServerPlayer player,ChunkPos pos) {
@@ -220,8 +224,8 @@ public final class TemplateServer {
         var address=SurfaceAddress.at(pos,face); return patternAt(server,pos,face).at(address.u(),address.v());
     }
     public static Pattern patternAt(MinecraftServer server,BlockPos pos,Direction face) {
-        var address=SurfaceAddress.at(pos,face); var state=TemplateState.get(server); var ids=state.column(server,pos.getX()>>4,pos.getZ()>>4);
-        return state.pattern(ids[address.index()]);
+        var address=SurfaceAddress.at(pos,face); var state=TemplateState.get(server); String id=state.surface(server,pos.getX()>>4,pos.getZ()>>4,address.index());
+        return state.pattern(id);
     }
     public static void reload(MinecraftServer server) {
         var state=TemplateState.get(server); var loaded=new HashMap<String,TemplateState.Entry>();

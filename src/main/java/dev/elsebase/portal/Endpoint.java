@@ -32,6 +32,7 @@ public record Endpoint(ResourceKey<Level> dimension, BlockPos position, Directio
         return tag;
     }
     public static Endpoint load(CompoundTag tag) {
+        dev.elsebase.SavedFields.require(tag,"position",net.minecraft.nbt.Tag.TAG_LONG);
         Direction facing = Direction.byName(tag.getString("facing"));
         if (facing == null) throw new IllegalArgumentException("Missing portal facing");
         return new Endpoint(ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(tag.getString("dimension"))),

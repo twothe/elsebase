@@ -83,7 +83,10 @@ public final class PreviewServer {
                 var scene=new PreviewProtocol.Scene(changed?++generation:old.scene.generation(),selected.id(),source,target,
                         level.getMinBuildHeight(),level.getHeight(),target.inner()&&!Settings.DARKNESS.get(),
                         level.dimensionType().hasSkyLight()?Math.max(0,1-level.getSkyDarken()/15f):0,level.dimensionType().ambientLight(),biome.getSkyColor());
-                if(changed) { old=new Subscription(scene); ACTIVE.put(player.getUUID(),old); }
+                if(changed) {
+                    old=new Subscription(scene); ACTIVE.put(player.getUUID(),old);
+                    if(target.inner()) dev.elsebase.template.TemplateServer.forgetColumns(player.getUUID(),old.origins.stream().map(net.minecraft.world.level.ChunkPos::new).distinct().toList());
+                }
                 old.scene=scene;
                 PacketDistributor.sendToPlayer(player,scene);
             }

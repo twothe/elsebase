@@ -15,6 +15,7 @@ public record PortalPair(UUID id, UUID owner, boolean permanent, Endpoint inner,
         return tag;
     }
     public static PortalPair load(CompoundTag tag) {
+        dev.elsebase.SavedFields.require(tag,"permanent",net.minecraft.nbt.Tag.TAG_BYTE);
         return new PortalPair(tag.getUUID("id"), tag.getUUID("owner"), tag.getBoolean("permanent"),
                 Endpoint.load(tag.getCompound("inner")), Endpoint.load(tag.getCompound("external")));
     }

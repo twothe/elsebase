@@ -121,10 +121,14 @@ public final class PortalRenderChecks {
             capture(mc,"elsebase-live-darkness.png"); stage=9; ticks=0;
             mc.getSingleplayerServer().execute(() -> Settings.DARKNESS.set(false));
         } else if(stage==9 && ++ticks>40 && PreviewClient.scene!=null && PreviewClient.scene.description.bright() && PreviewClient.scene.dirty.isEmpty()) {
-            beforeReload=PreviewClient.scene.description.generation(); stage=10; ticks=0; mc.reloadResourcePacks();
+            beforeReload=PreviewClient.scene.description.generation(); stage=10; ticks=0;
+            // Simulate eviction of historical appearances: a new scene must not rely on old delivery acknowledgments.
+            dev.elsebase.client.TemplateModels.COLUMNS.clear(); mc.reloadResourcePacks();
         } else if(stage==10 && ++ticks>60 && mc.getOverlay()==null && PreviewClient.scene!=null && PreviewClient.scene.description.generation()!=beforeReload && PreviewClient.renderer.ready) {
             require(PreviewClient.renderer.hasColorVariation(),"Resource reload reacquires snapshots and rebuilds GPU resources");
-            require(brokenModelCalls==2,"Model quarantine resets on resource reload and retries exactly once"); startCrossing(mc);
+            require(brokenModelCalls==2,"Model quarantine resets on resource reload and retries exactly once");
+            var appearance=dev.elsebase.client.TemplateModels.pattern(new BlockPos(135,64,136),Direction.UP);
+            require(appearance!=null && appearance.at(7,8).block().equals("minecraft:yellow_concrete"),"Restarted preview reacquires evicted column appearances"); startCrossing(mc);
         } else if(stage==4 && mc.level!=null && mc.level.dimension().equals(Elsebase.DIMENSION) && mc.screen==null && ++ticks>40) {
             require(PortalTransition.replacedScreens==2,"Both vanilla transition screens replaced");
             require(vanillaScreens==0,"No vanilla receiving screen rendered during portal travel");

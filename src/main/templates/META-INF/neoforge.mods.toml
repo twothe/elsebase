@@ -10,7 +10,7 @@ displayName="${mod_name}"
 description='''
 A permanent workspace beyond the world. Summon a doorway, build your base,
 and return through persistent cross-dimensional thresholds. Includes modular
-rooms, structural tools and seven resource-pack appearances.
+rooms, structural tools, seven built-in themes and shared custom room designs.
 '''
 
 [[dependencies.${mod_id}]]

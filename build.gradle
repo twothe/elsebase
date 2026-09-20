@@ -118,7 +118,16 @@ tasks.withType(JavaCompile).configureEach {
     options.release = 21
 }
 
+// Development fixtures stay available to local runs, but must never enter the distributed mod.
+def developmentAssets = [
+    'dev/elsebase/IntegrationTests*', 'dev/elsebase/template/TemplateIntegrationTests*',
+    'dev/elsebase/preview/PreviewIntegrationTests*', 'dev/elsebase/client/ClientChecks*',
+    'dev/elsebase/client/PreviewChecks*', 'dev/elsebase/client/TemplateChecks*',
+    'dev/elsebase/client/preview/PortalRenderChecks*', 'dev/elsebase/client/checks/**',
+    'elsebase-client-checks.mixins.json', 'gametest_pack/**', 'data/elsebase/structure/empty.nbt'
+]
 tasks.named('jar', Jar) {
+    exclude developmentAssets
     from('TEMPLATE_LICENSE.txt') {
         into 'META-INF'
     }
@@ -134,3 +143,26 @@ idea {
         downloadJavadoc = true
     }
 }
+
+// Check the deliverable itself, including generated text; development launches use exploded classes/resources.
+def releaseArchive = tasks.named('jar', Jar).flatMap { it.archiveFile }
+tasks.register('verifyReleaseJar') {
+    dependsOn 'jar'
+    inputs.file releaseArchive
+    doLast {
+        new java.util.zip.ZipFile(releaseArchive.get().asFile).withCloseable { archive ->
+            def names = archive.entries().collect { it.name }
+            if (names.any { it.contains('IntegrationTests') || it.contains('Checks.class') || it.contains('client/checks/') || it.startsWith('gametest_pack/') }) {
+                throw new GradleException('Development fixtures leaked into the release JAR')
+            }
+            ['META-INF/neoforge.mods.toml', 'dev/elsebase/Elsebase.class', 'assets/elsebase/textures/item/paint_tool.png', 'assets/elsebase/textures/item/scanner.png'].each {
+                if (!names.contains(it)) throw new GradleException("Missing release asset: ${it}")
+            }
+            def language = archive.getInputStream(archive.getEntry('assets/elsebase/lang/de_de.json')).withCloseable { new groovy.json.JsonSlurper().parse(it, 'UTF-8') }
+            if (language['tooltip.elsebase.aim'] != 'Wand, Boden oder Decke ansehen. Kein Moduswechsel n\u00f6tig.') {
+                throw new GradleException('Generated German text has an encoding regression')
+            }
+        }
+    }
+}
+tasks.named('check') { dependsOn 'verifyReleaseJar' }

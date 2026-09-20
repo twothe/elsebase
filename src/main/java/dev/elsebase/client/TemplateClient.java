@@ -50,7 +50,7 @@ public final class TemplateClient {
                 if(!TemplateModels.COLUMNS.containsKey(key) && TemplateModels.COLUMNS.size()>=8192) {
                     // Evict one distant historical column, never reset visible assignments during travel.
                     var origin=mc.player==null?new ChunkPos(key):mc.player.chunkPosition();
-                    var distant=TemplateModels.COLUMNS.keySet().stream().max(Comparator.comparingDouble(k -> {
+                    var distant=TemplateModels.COLUMNS.keySet().stream().filter(k -> !retainedColumn(mc,k)).max(Comparator.comparingDouble(k -> {
                         var pos=new ChunkPos(k); double dx=(double)pos.x-origin.x,dz=(double)pos.z-origin.z; return dx*dx+dz*dz;
                     }));
                     distant.ifPresent(TemplateModels.COLUMNS::remove);
@@ -67,6 +67,15 @@ public final class TemplateClient {
             case "message" -> { message=new String(packet.data(),StandardCharsets.UTF_8); if(mc.player!=null) mc.player.displayClientMessage(Component.literal(message),false); }
             default -> throw new IllegalArgumentException("Unknown template reply");
         }
+    }
+    /** Keep installed chunks and the current remote preview; historical columns can be reacquired on watch/subscription. */
+    private static boolean retainedColumn(Minecraft mc,long key) {
+        var pos=new ChunkPos(key);
+        if(mc.level!=null && mc.level.dimension().equals(Elsebase.DIMENSION) && mc.level.hasChunk(pos.x,pos.z)) return true;
+        var scene=dev.elsebase.client.preview.PreviewClient.scene;
+        if(scene==null || !scene.description.target().inner()) return false;
+        var target=new ChunkPos(scene.description.target().position());
+        return Math.abs((long)pos.x-target.x)<=1 && Math.abs((long)pos.z-target.z)<=1;
     }
     private static void refreshPreview() { dev.elsebase.client.preview.PreviewClient.templatesChanged(); }
     /** Appearance packets can precede chunk installation. Requeue cached styles once their real chunk arrives. */

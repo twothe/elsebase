@@ -12,8 +12,10 @@ import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** Development-only GameTests exercise registry initialization, generation and persisted gameplay contracts. */
+@net.neoforged.fml.common.EventBusSubscriber(modid=Elsebase.ID)
 @PrefixGameTestTemplate(false)
 public final class IntegrationTests {
+    @net.neoforged.bus.api.SubscribeEvent
     public static void register(RegisterGameTestsEvent event) { event.register(IntegrationTests.class); event.register(dev.elsebase.template.TemplateIntegrationTests.class); event.register(dev.elsebase.preview.PreviewIntegrationTests.class); }
     @BeforeBatch(batch = "defaultBatch")
     public static void resetTestRegistry(net.minecraft.server.level.ServerLevel level) {
@@ -710,6 +712,33 @@ public final class IntegrationTests {
         }
         helper.assertTrue(level.getBlockState(endpoint.position().north()).is(Blocks.STONE),"Neighbor wall remains untouched");
         player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed")); helper.succeed();
+    }
+
+    @GameTest(template = "empty", templateNamespace = Elsebase.ID)
+    public static void corruptSavedFieldsAreRejected(GameTestHelper helper) {
+        var registries=helper.getLevel().registryAccess(); var state=new WorldState(); state.home(helper.getLevel().getServer(),UUID.randomUUID());
+        var valid=state.save(new CompoundTag(),registries);
+        for(String key:List.of("homes","portals","returns","lifetimes","spacing")) {
+            var invalid=valid.copy(); invalid.remove(key); boolean rejected=false;
+            try { WorldState.load(invalid,registries); } catch(IllegalStateException expected) { rejected=true; }
+            helper.assertTrue(rejected,"Missing saved field must not become an empty registry: "+key);
+        }
+        var malformed=valid.copy(); var wrongRows=new net.minecraft.nbt.ListTag(); wrongRows.add(net.minecraft.nbt.StringTag.valueOf("bad")); malformed.put("homes",wrongRows);
+        boolean rejected=false; try { WorldState.load(malformed,registries); } catch(IllegalStateException expected) { rejected=true; }
+        helper.assertTrue(rejected,"Wrong list element type is rejected");
+        var moved=valid.copy(); moved.getList("homes",net.minecraft.nbt.Tag.TAG_COMPOUND).getCompound(0).putInt("slotX",0);
+        rejected=false; try { WorldState.load(moved,registries); } catch(IllegalStateException expected) { rejected=true; }
+        helper.assertTrue(rejected,"Off-grid saved reservation is rejected");
+        var endpoint=state.homes.values().iterator().next().reference().save(); endpoint.remove("position");
+        rejected=false; try { Endpoint.load(endpoint); } catch(IllegalStateException expected) { rejected=true; }
+        helper.assertTrue(rejected,"Missing saved coordinate never becomes origin");
+        var templates=new dev.elsebase.template.TemplateState(); var templateTag=templates.save(new CompoundTag(),registries);
+        for(String key:List.of("definitions","defaults","bindings","tools","buffers")) {
+            var invalid=templateTag.copy(); invalid.remove(key); rejected=false;
+            try { dev.elsebase.template.TemplateState.load(invalid,registries); } catch(IllegalStateException expected) { rejected=true; }
+            helper.assertTrue(rejected,"Missing template section is rejected: "+key);
+        }
+        helper.succeed();
     }
 
     @GameTest(template = "empty", templateNamespace = Elsebase.ID)

@@ -23,21 +23,23 @@ public final class StructuralPreview {
                 || !minecraft.level.dimension().equals(Elsebase.DIMENSION)) return;
         var main = player.getMainHandItem().getItem();
         var off = player.getOffhandItem().getItem();
-        ToolItem tool = main instanceof ToolItem item && item.structural() ? item
-                : player.getMainHandItem().isEmpty() && off instanceof ToolItem item && item.structural() ? item : null;
+        ToolItem tool = main instanceof ToolItem item && (item.structural() || item.kind()==ToolItem.Kind.PAINT) ? item
+                : player.getMainHandItem().isEmpty() && off instanceof ToolItem item && (item.structural() || item.kind()==ToolItem.Kind.PAINT) ? item : null;
         if (tool==null) return;
         var panel = PanelSelection.select(minecraft.level,player.position(),player.getEyePosition(),player.getLookAngle(),tool.restores());
         if (panel==null) return;
         var camera = event.getCamera().getPosition();
-        var box = panel.bounds(tool.restores()).inflate(0.006).move(-camera.x,-camera.y,-camera.z);
-        float red = tool.restores() ? 0.15f : 1.0f;
-        float green = tool.restores() ? 0.9f : 0.35f;
+        var box = panel.bounds(tool.restores() || tool.kind()==ToolItem.Kind.PAINT).inflate(0.006).move(-camera.x,-camera.y,-camera.z);
+        boolean painting = tool.kind()==ToolItem.Kind.PAINT;
+        float red = painting ? 0.2f : tool.restores() ? 0.15f : 1.0f;
+        float green = painting ? 0.7f : tool.restores() ? 0.9f : 0.35f;
+        float blue = painting ? 1.0f : 0.35f;
         var pose = event.getPoseStack();
         var buffers = minecraft.renderBuffers().bufferSource();
         LevelRenderer.addChainedFilledBoxVertices(pose,buffers.getBuffer(RenderType.debugFilledBox()),
-                box.minX,box.minY,box.minZ,box.maxX,box.maxY,box.maxZ,red,green,0.35f,0.22f);
+                box.minX,box.minY,box.minZ,box.maxX,box.maxY,box.maxZ,red,green,blue,0.22f);
         buffers.endBatch(RenderType.debugFilledBox());
-        LevelRenderer.renderLineBox(pose,buffers.getBuffer(RenderType.lines()),box,red,green,0.35f,0.85f);
+        LevelRenderer.renderLineBox(pose,buffers.getBuffer(RenderType.lines()),box,red,green,blue,0.85f);
         buffers.endBatch(RenderType.lines());
     }
 }

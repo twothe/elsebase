@@ -103,6 +103,7 @@ public final class PreviewServer {
             var origin=sub.origins.get(sub.next++%sub.origins.size());
             var snapshot=capture(level,sub.scene.generation(),origin);
             if(snapshot!=null) {
+                if(level.dimension().equals(Elsebase.DIMENSION)) dev.elsebase.template.TemplateServer.syncColumn(player,new net.minecraft.world.level.ChunkPos(origin));
                 var old=sub.previous.put(origin,snapshot);
                 if(old==null || !Arrays.equals(old.states(),snapshot.states()) || !Arrays.equals(old.light(),snapshot.light()) || !Arrays.equals(old.biomes(),snapshot.biomes()))
                     PacketDistributor.sendToPlayer(player,snapshot);

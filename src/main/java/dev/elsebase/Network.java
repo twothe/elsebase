@@ -23,7 +23,8 @@ public final class Network {
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
     public static void register(RegisterPayloadHandlersEvent event) {
-        var registrar = event.registrar("4");
+        var registrar = event.registrar("6");
+        dev.elsebase.template.TemplateProtocol.register(registrar);
         registrar.playToServer(dev.elsebase.preview.PreviewProtocol.Preference.TYPE, dev.elsebase.preview.PreviewProtocol.Preference.CODEC,
                 (payload,context) -> { if(context.player() instanceof ServerPlayer player) dev.elsebase.preview.PreviewServer.preference(player,payload.quality(),payload.restart()); });
         registrar.playToClient(dev.elsebase.preview.PreviewProtocol.Scene.TYPE, dev.elsebase.preview.PreviewProtocol.Scene.CODEC,

@@ -6,6 +6,9 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 /** Installation-wide server policy, editable before loading a world through NeoForge's config screen. */
 public final class Settings {
     public static final ModConfigSpec SPEC;
+    public static final ModConfigSpec.BooleanValue TEMPLATE_IMPORTS, PERSONAL_TEMPLATES;
+    public static final ModConfigSpec.IntValue TEMPLATE_QUOTA;
+    public static final ModConfigSpec.ConfigValue<String> TEMPLATE_DEFAULT;
     public static final ModConfigSpec.BooleanValue INSTANT, NATURAL_SPAWNS, DARKNESS;
     public static final ModConfigSpec.IntValue PERMANENT_LIMIT, MIRROR_LIMIT, EDIT_BUDGET, RADIUS, SPACING;
     public static final ModConfigSpec.ConfigValue<List<? extends String>> EXCLUDED;
@@ -34,6 +37,11 @@ public final class Settings {
         b.pop().push("preview");
         PREVIEW_BUDGET = b.comment("Read-only portal snapshot budget. Uses loaded chunks only; OFF retains portal travel. LOW/BALANCED/HIGH allow 8/16/32 viewers and at most 1/2/4 section copies per tick globally.")
                 .defineEnum("budget", dev.elsebase.preview.PreviewServer.Budget.BALANCED);
+        b.pop().push("templates");
+        TEMPLATE_IMPORTS=b.define("allowPlayerImports",true);
+        PERSONAL_TEMPLATES=b.define("allowPersonalDefaults",true);
+        TEMPLATE_QUOTA=b.defineInRange("templatesPerPlayer",64,1,256);
+        TEMPLATE_DEFAULT=b.comment("Built-in theme name or complete theme ID. Reload templates after changes.").define("defaultStyle","quiet_workshop");
         b.pop();
         SPEC = b.build();
     }

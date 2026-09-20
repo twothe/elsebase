@@ -87,6 +87,8 @@ public final class StructuralEditor {
             if (blocked || !WorldEdits.apply(player, changes)) {
                 QUEUE.removeIf(j -> j.player().equals(job.player()));
                 Portals.message(player, "Surface obstructed or protected; edit cancelled.");
+            } else if(job.restore() && WorldEdits.authorizeAppearance(player,job.panel().positions(true))) {
+                dev.elsebase.template.TemplateServer.restored(player,job.panel());
             }
         }
     }

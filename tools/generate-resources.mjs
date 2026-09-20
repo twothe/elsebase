@@ -24,23 +24,8 @@ for (const obsolete of ['assets/elsebase/models/item/structure_tool.json','data/
 
 const names = ['floor', 'border', 'wall', 'ceiling', 'light'];
 
-const themes = {
-
-    quiet_workshop: ['smooth_stone', 'polished_andesite', 'smooth_quartz', 'iron_block', 'sea_lantern'],
-
-    arcane_archive: ['dark_oak_planks', 'chiseled_stone_bricks', 'bookshelf', 'deepslate_tiles', 'ochre_froglight_side'],
-
-    verdant_cloister: ['mossy_stone_bricks', 'polished_andesite', 'mud_bricks', 'moss_block', 'verdant_froglight_side'],
-
-    astral_observatory: ['deepslate_tiles', 'purpur_block', 'blue_terracotta', 'black_concrete', 'pearlescent_froglight_side'],
-
-    deepstone_halls: ['polished_deepslate', 'chiseled_deepslate', 'deepslate_bricks', 'tuff_bricks', 'ochre_froglight_side'],
-
-    porcelain_sanctuary: ['smooth_quartz', 'light_gray_concrete', 'white_concrete', 'quartz_block_bottom', 'sea_lantern'],
-
-    service_layer: ['smooth_stone', 'yellow_concrete', 'light_gray_concrete', 'iron_block', 'sea_lantern']
-
-};
+// Neutral fallback geometry; approved room appearances live in BuiltinThemes.
+const fallbackTextures = ['smooth_stone','polished_andesite','stone_bricks','stone_bricks','sea_lantern'];
 
 // smooth_quartz uses quartz_block_bottom in vanilla's model rather than a texture of its own.
 
@@ -74,11 +59,9 @@ function panelModel(main, trim) {
 
 }
 
-for (const [theme, textures] of Object.entries(themes)) {
-
-    const prefix = theme === 'quiet_workshop' ? '' : 'resourcepacks/' + theme + '/';
-
-    if (prefix) write(prefix + 'pack.mcmeta', {pack:{pack_format:34,description:'Elsebase — ' + theme.replaceAll('_',' ')}});
+{
+    const textures = fallbackTextures;
+    const prefix = '';
 
     names.forEach((name, index) => write(prefix + 'assets/elsebase/models/block/' + name + '.json',
 
@@ -88,11 +71,8 @@ for (const [theme, textures] of Object.entries(themes)) {
 
     // Static 1x2 doorway trim; a non-ticking renderer owns the live/fallback aperture.
 
-    const magical = ['arcane_archive','verdant_cloister','astral_observatory','deepstone_halls'].includes(theme);
-
-    const rim = texture(magical ? textures[1] : 'copper_block');
-
-    const inlay = texture(magical ? textures[4] : 'oxidized_copper');
+    const rim = texture('copper_block');
+    const inlay = texture('oxidized_copper');
 
     write(prefix+'assets/elsebase/models/block/portal_surface.json',{textures:{particle:'minecraft:block/nether_portal'},elements:[]});
     for (const half of ['lower','upper']) {
@@ -162,7 +142,7 @@ for (const [name,elements] of Object.entries(toolParts))
 
 const english={
 
-    'elsebase.portal.loading':'Crossing the threshold…',
+    'elsebase.portal.loading':'Crossing the thresholdâ€¦',
     'key.categories.elsebase':'Elsebase','key.elsebase.portal':'Summon / recall instant portal',
 
     'item.elsebase.anchor_tool':'Spawn Anchor Tool','item.elsebase.portal_tool':'Portal Generator','item.elsebase.removal_tool':'Removal Tool','item.elsebase.creation_tool':'Creation Tool','item.elsebase.threshold_core':'Threshold Core',
@@ -211,38 +191,38 @@ write('assets/elsebase/lang/en_us.json',english);
 write('assets/elsebase/lang/de_de.json',{...english,
     'elsebase.configuration.title':'Elsebase-Einstellungen',
     'elsebase.configuration.portals':'Portale', 'elsebase.configuration.chunkloading':'Chunkloading',
-    'elsebase.configuration.structure':'Strukturwerkzeuge', 'elsebase.configuration.allocation':'Persönliche Startbereiche',
+    'elsebase.configuration.structure':'Strukturwerkzeuge', 'elsebase.configuration.allocation':'PersÃ¶nliche Startbereiche',
     'elsebase.configuration.world':'Dimension',
     'elsebase.configuration.preview':'Portalvorschau', 'elsebase.configuration.budget':'Gemeinsames Vorschau-Budget',
-    'elsebase.configuration.render':'Darstellung', 'elsebase.configuration.previewQuality':'Qualität der Portalvorschau',
-    'elsebase.configuration.immersivePortalTransition':'Immersiver Portalübergang',
+    'elsebase.configuration.render':'Darstellung', 'elsebase.configuration.previewQuality':'QualitÃ¤t der Portalvorschau',
+    'elsebase.configuration.immersivePortalTransition':'Immersiver PortalÃ¼bergang',
     'elsebase.configuration.allowInstant':'Instant-Portale erlauben',
     'elsebase.configuration.maxPermanentPairsPerPlayer':'Permanente Portalpaare pro Spieler',
-    'elsebase.configuration.excludedExternalDimensions':'Dimensionen ohne neue Eingänge',
+    'elsebase.configuration.excludedExternalDimensions':'Dimensionen ohne neue EingÃ¤nge',
     'elsebase.configuration.maxMirroredEndpointChunks':'Maximale Anzahl vorgeladener Portalchunks',
-    'elsebase.configuration.maxChangedBlocksPerTick':'Blockänderungen pro Tick',
-    'elsebase.configuration.radius':'Radius für Startbereiche',
+    'elsebase.configuration.maxChangedBlocksPerTick':'BlockÃ¤nderungen pro Tick',
+    'elsebase.configuration.radius':'Radius fÃ¼r Startbereiche',
     'elsebase.configuration.minimumSpacing':'Mindestabstand zwischen Spielern',
-    'elsebase.configuration.allowNaturalMobSpawning':'Natürliches Mob-Spawning erlauben',
+    'elsebase.configuration.allowNaturalMobSpawning':'NatÃ¼rliches Mob-Spawning erlauben',
     'elsebase.configuration.darkness':'Dunkle Dimension (pauschale Helligkeit aus)',
 
 
-    'tooltip.elsebase.anchor':'Rechtsklick auf einen Boden: persönlichen Spawn-Anker versetzen.',
+    'tooltip.elsebase.anchor':'Rechtsklick auf einen Boden: persÃ¶nlichen Spawn-Anker versetzen.',
 
-    'tooltip.elsebase.portal':'Innen, dann außen verknüpfen. Portal mit Shift-Rechtsklick entfernen.',
+    'tooltip.elsebase.portal':'Innen, dann auÃŸen verknÃ¼pfen. Portal mit Shift-Rechtsklick entfernen.',
 
-    'tooltip.elsebase.remove':'Rechtsklick: Markierte Fläche entfernen; Bodenränder bleiben erhalten.',
-    'tooltip.elsebase.aim':'Wand, Boden oder Decke ansehen. Kein Moduswechsel nötig.',
+    'tooltip.elsebase.remove':'Rechtsklick: Markierte FlÃ¤che entfernen; BodenrÃ¤nder bleiben erhalten.',
+    'tooltip.elsebase.aim':'Wand, Boden oder Decke ansehen. Kein Moduswechsel nÃ¶tig.',
 
-    'tooltip.elsebase.create':'Rechtsklick: geschlossene Wände bauen oder Böden und Decken herstellen.',
-
-
+    'tooltip.elsebase.create':'Rechtsklick: geschlossene WÃ¤nde bauen oder BÃ¶den und Decken herstellen.',
 
 
-    'elsebase.portal.loading':'Durchgang wird vorbereitet…',
+
+
+    'elsebase.portal.loading':'Durchgang wird vorbereitetâ€¦',
     'key.elsebase.portal':'Instant-Portal rufen / versetzen',
 
-    'item.elsebase.anchor_tool':'Spawn-Ankerwerkzeug','item.elsebase.portal_tool':'Portalgenerator','item.elsebase.removal_tool':'Löschwerkzeug','item.elsebase.creation_tool':'Herstellwerkzeug','item.elsebase.threshold_core':'Portalkern',
+    'item.elsebase.anchor_tool':'Spawn-Ankerwerkzeug','item.elsebase.portal_tool':'Portalgenerator','item.elsebase.removal_tool':'LÃ¶schwerkzeug','item.elsebase.creation_tool':'Herstellwerkzeug','item.elsebase.threshold_core':'Portalkern',
 
     'block.elsebase.floor':'Werkraumboden','block.elsebase.border':'Zellgrenze','block.elsebase.wall':'Trennwand','block.elsebase.ceiling':'Deckenpaneel',
 
@@ -307,6 +287,7 @@ write('pack.mcmeta',{pack:{pack_format:34,description:'Elsebase resources'}});
 // This pack is registered only in the dedicated GameTest launch, never in ordinary worlds.
 
 write('gametest_pack/pack.mcmeta',{pack:{pack_format:48,description:'Elsebase GameTest dimension fixture'}});
+write('gametest_pack/data/elsebase/tags/block/template_material_blacklist.json',{replace:false,values:['minecraft:emerald_block']});
 
 write('gametest_pack/data/minecraft/worldgen/world_preset/flat.json',{dimensions:{
 
@@ -342,7 +323,48 @@ const fixture=Buffer.concat([Buffer.from([10]),utf(''),named(3,'DataVersion',int
 
 write('data/elsebase/structure/empty.nbt',zlib.gzipSync(fixture));
 
-console.log('Generated Elsebase resources, seven theme palettes, recipes and GameTest fixture.');
+console.log('Generated Elsebase fallback resources, recipes and GameTest fixture.');
 
 
 
+
+// Independently addressable template materials: every palette can coexist in the same chunk.
+// Technical material checks are authoritative; packs may explicitly block additional materials.
+write('data/elsebase/tags/block/template_material_blacklist.json',{replace:false,values:[]});
+write('assets/elsebase/models/item/scanner.json',{parent:'minecraft:item/handheld',textures:{layer0:'elsebase:item/scanner'}});
+write('data/elsebase/recipe/scanner.json',{type:'minecraft:crafting_shaped',pattern:[' GI',' S ',' S '],key:{G:{item:'minecraft:glass'},I:{item:'minecraft:iron_ingot'},S:{item:'minecraft:stick'}},result:{id:'elsebase:scanner',count:1}});
+for(const locale of ['en_us','de_de']) {
+ const file=`assets/elsebase/lang/${locale}.json`; const lang=JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
+ lang['item.elsebase.scanner']=locale==='de_de'?'Vorlagen-Scanner':'Template Scanner';
+ lang['tooltip.elsebase.scan']=locale==='de_de'?'Shift-Rechtsklick: Theme wÃ¤hlen und speichern. Rechtsklick: angeschaute RaumflÃ¤che in den Puffer scannen.':'Shift-right-click: choose and save a theme. Right-click: scan the aimed room surface into the buffer.';
+ lang['item.elsebase.paint_tool']=locale==='de_de'?'Malwerkzeug':'Paint Tool';
+ lang['tooltip.elsebase.paint']=locale==='de_de'?'Rechtsklick: RaumflÃ¤che umfÃ¤rben. Shift-Rechtsklick: Theme wÃ¤hlen oder als Standard setzen.':'Right-click: repaint a room surface. Shift-right-click: choose a theme or set your default.';
+ lang['tooltip.elsebase.create']+=(locale==='de_de'?' Shift-Rechtsklick: Bau-Theme wÃ¤hlen.':' Shift-right-click: select construction theme.');
+ write(file,lang);
+}
+
+write('assets/elsebase/models/item/paint_tool.json',{parent:'minecraft:item/handheld',textures:{layer0:'elsebase:item/paint_tool'}});
+write('data/elsebase/recipe/paint_tool.json',{type:'minecraft:crafting_shaped',pattern:[' WW',' SC',' S '],key:{W:{item:'minecraft:white_wool'},C:{item:'minecraft:copper_ingot'},S:{item:'minecraft:stick'}},result:{id:'elsebase:paint_tool',count:1}});
+
+// Authored 32px item silhouettes: a turquoise roller and a copper optical scanner.
+function toolTexture(name,draw) {
+    const pixels=Buffer.alloc(32*32*4);
+    const rect=(x,y,w,h,color)=>{ for(let j=y;j<y+h;j++) for(let i=x;i<x+w;i++) {const n=(j*32+i)*4; pixels[n]=color>>16&255; pixels[n+1]=color>>8&255; pixels[n+2]=color&255; pixels[n+3]=255;} };
+    draw(rect);
+    const crc=buffer=>{let n=0xffffffff;for(const b of buffer){n^=b;for(let k=0;k<8;k++) n=(n>>>1)^((n&1)?0xedb88320:0);}return (n^0xffffffff)>>>0;};
+    const chunk=(type,data)=>{const t=Buffer.from(type);const n=Buffer.alloc(4),c=Buffer.alloc(4);n.writeUInt32BE(data.length);c.writeUInt32BE(crc(Buffer.concat([t,data])));return Buffer.concat([n,t,data,c]);};
+    const header=Buffer.alloc(13);header.writeUInt32BE(32,0);header.writeUInt32BE(32,4);header[8]=8;header[9]=6;
+    const rows=Buffer.alloc(32*129);for(let y=0;y<32;y++) pixels.copy(rows,y*129+1,y*128,(y+1)*128);
+    write('assets/elsebase/textures/item/'+name+'.png',Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',zlib.deflateSync(rows)),chunk('IEND',Buffer.alloc(0))]));
+}
+toolTexture('paint_tool',r=>{
+    r(5,3,23,9,0x182c32);r(7,4,18,7,0x2a9e9b);r(8,4,16,2,0xa5f5d4);r(7,9,18,2,0x155d68);
+    r(26,10,2,7,0xd29761);r(15,15,13,2,0xd29761);r(14,17,3,4,0x774732);
+    r(12,20,7,11,0x182c32);r(13,21,5,9,0xb56842);r(14,21,2,8,0xedb379);r(13,27,5,2,0x2a9e9b);
+});
+toolTexture('scanner',r=>{
+    r(10,19,10,12,0x182c32);r(12,20,6,10,0xa86642);r(13,21,2,8,0xe0a56b);
+    r(4,3,23,18,0x182c32);r(5,4,21,16,0xa86642);r(6,4,18,2,0xedbd7d);
+    r(7,7,16,10,0x153d4b);r(9,8,12,8,0x258c9e);r(11,9,8,6,0x65d2cf);
+    r(14,8,2,8,0xd5ffe5);r(10,11,10,2,0xd5ffe5);r(7,18,3,1,0x65d2cf);r(20,18,3,1,0x65d2cf);
+});

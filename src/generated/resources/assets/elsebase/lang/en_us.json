@@ -1,5 +1,5 @@
 {
-  "elsebase.portal.loading": "Crossing the threshold…",
+  "elsebase.portal.loading": "Crossing the thresholdâ€¦",
   "key.categories.elsebase": "Elsebase",
   "key.elsebase.portal": "Summon / recall instant portal",
   "item.elsebase.anchor_tool": "Spawn Anchor Tool",
@@ -38,5 +38,9 @@
   "tooltip.elsebase.portal": "Link inside, then outside. Sneak-use a portal to remove it.",
   "tooltip.elsebase.remove": "Right-click to remove the highlighted surface; floor borders remain.",
   "tooltip.elsebase.aim": "Look at a wall, floor or ceiling. No mode switching.",
-  "tooltip.elsebase.create": "Right-click to build solid walls or restore floors and ceilings."
+  "tooltip.elsebase.create": "Right-click to build solid walls or restore floors and ceilings. Shift-right-click: select construction theme.",
+  "item.elsebase.scanner": "Template Scanner",
+  "tooltip.elsebase.scan": "Shift-right-click: choose and save a theme. Right-click: scan the aimed room surface into the buffer.",
+  "item.elsebase.paint_tool": "Paint Tool",
+  "tooltip.elsebase.paint": "Right-click: repaint a room surface. Shift-right-click: choose a theme or set your default."
 }

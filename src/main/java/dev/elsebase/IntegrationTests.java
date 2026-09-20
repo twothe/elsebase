@@ -14,7 +14,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 /** Development-only GameTests exercise registry initialization, generation and persisted gameplay contracts. */
 @PrefixGameTestTemplate(false)
 public final class IntegrationTests {
-    public static void register(RegisterGameTestsEvent event) { event.register(IntegrationTests.class); event.register(dev.elsebase.preview.PreviewIntegrationTests.class); }
+    public static void register(RegisterGameTestsEvent event) { event.register(IntegrationTests.class); event.register(dev.elsebase.template.TemplateIntegrationTests.class); event.register(dev.elsebase.preview.PreviewIntegrationTests.class); }
     @BeforeBatch(batch = "defaultBatch")
     public static void resetTestRegistry(net.minecraft.server.level.ServerLevel level) {
         if (!Boolean.getBoolean("neoforge.gameTestServer")) return;
@@ -484,7 +484,11 @@ public final class IntegrationTests {
         player.setShiftKeyDown(true);
         Content.CREATION_TOOL.get().use(level,player,net.minecraft.world.InteractionHand.MAIN_HAND);
         dev.elsebase.structure.StructuralEditor.tick(player.server);
+        helper.assertTrue(level.getBlockState(ceiling).isAir(),"Shift-use opens templates without reconstructing a surface");
         player.setShiftKeyDown(false);
+        player.getCooldowns().removeCooldown(Content.CREATION_TOOL.get());
+        Content.CREATION_TOOL.get().use(level,player,net.minecraft.world.InteractionHand.MAIN_HAND);
+        dev.elsebase.structure.StructuralEditor.tick(player.server);
         helper.assertTrue(StructuralBlock.protectedStructure(level,level.getBlockState(ceiling)),"Creation tool restores current ceiling");
         player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,remove);
         player.getCooldowns().removeCooldown(Content.REMOVAL_TOOL.get());
@@ -571,7 +575,7 @@ public final class IntegrationTests {
         helper.assertTrue(!Portals.canFit(player,testEndpoint,null),"Solid terrain retained");
         outside.setBlockAndUpdate(vegetation,Blocks.SHORT_GRASS.defaultBlockState());
         java.util.function.Consumer<net.neoforged.neoforge.event.level.BlockEvent.BreakEvent> deny = event -> {
-            if (event.getLevel()==outside && event.getState().is(Blocks.SNOW)) event.setCanceled(true);
+            if (event.getLevel()==outside && event.getState().is(Blocks.SHORT_GRASS)) event.setCanceled(true);
         };
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(deny);
         try {
@@ -583,7 +587,7 @@ public final class IntegrationTests {
         var pair = WorldState.get(player.server).instant(player.getUUID());
         helper.assertTrue(pair != null && pair.external().position().equals(vegetation),"Summon replaces grass at preferred doorway");
         helper.assertTrue(outside.getBlockState(vegetation).is(Content.PORTAL.get()),"Grass replaced with frame");
-        helper.assertTrue(outside.getBlockState(vegetation.north()).isAir() && outside.getBlockState(vegetation.south()).isAir(),"Snow cleared on both approaches");
+        helper.assertTrue(outside.getBlockState(vegetation.north()).is(Blocks.SNOW) && outside.getBlockState(vegetation.south()).is(Blocks.SNOW),"Adjacent snow remains untouched");
         helper.assertTrue(pair.external().blocks().size()==2,"Portal itself remains one wide and two high");
         player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed"));
         helper.runAfterDelay(40,helper::succeed);
@@ -671,7 +675,8 @@ public final class IntegrationTests {
         var chunk = level.getChunkAt(outside.position());
         var neighbor = outside.position().east();
         level.setBlockAndUpdate(neighbor,Blocks.CHEST.defaultBlockState());
-        for (var pos : outside.blocks()) level.setBlockAndUpdate(pos,Content.PORTAL.get().defaultBlockState());
+        // Seed corrupt saved states without normal placement notifications.
+        for (var pos : outside.blocks()) chunk.setBlockState(pos,Content.PORTAL.get().defaultBlockState(),false);
         var orphan = outside.position().above(3);
         level.setBlockAndUpdate(orphan,Content.PORTAL.get().defaultBlockState());
         var hook = new ServerEvents();
@@ -684,6 +689,27 @@ public final class IntegrationTests {
         for (var pos : outside.blocks()) level.removeBlock(pos,false);
         level.removeBlock(neighbor,false); data.remove(pair.id());
         helper.succeed();
+    }
+
+    @GameTest(template = "empty", templateNamespace = Elsebase.ID)
+    public static void narrowDoorwayAndHalfRemoval(GameTestHelper helper) {
+        var player=helper.makeMockServerPlayerInLevel(); var level=helper.getLevel();
+        var endpoint=new Endpoint(level.dimension(),new BlockPos(159,180,159),Direction.NORTH);
+        for(var pos:endpoint.blocks()) {
+            level.setBlockAndUpdate(pos,Blocks.AIR.defaultBlockState());
+            for(var side:Direction.Plane.HORIZONTAL) level.setBlockAndUpdate(pos.relative(side),Blocks.STONE.defaultBlockState());
+        }
+        level.setBlockAndUpdate(endpoint.position().below(),Blocks.AIR.defaultBlockState());
+        helper.assertTrue(Portals.canFit(player,endpoint,null),"Only the 1x2 body must fit, even at chunk edge without floor");
+        for(var destroyed:endpoint.blocks()) {
+            var changes=endpoint.blocks().stream().map(pos -> new WorldEdits.Change(level,pos,level.getBlockState(pos),PortalBlock.stateAt(endpoint,pos))).toList();
+            helper.assertTrue(WorldEdits.apply(player,changes),"Atomic doorway placement beside walls succeeds");
+            helper.assertTrue(endpoint.blocks().stream().allMatch(pos -> level.getBlockState(pos).equals(PortalBlock.stateAt(endpoint,pos))),"Both halves survive transaction commit");
+            level.destroyBlock(destroyed,false);
+            helper.assertTrue(endpoint.blocks().stream().allMatch(pos -> level.getBlockState(pos).isAir()),"Mining either half removes both immediately");
+        }
+        helper.assertTrue(level.getBlockState(endpoint.position().north()).is(Blocks.STONE),"Neighbor wall remains untouched");
+        player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed")); helper.succeed();
     }
 
     @GameTest(template = "empty", templateNamespace = Elsebase.ID)

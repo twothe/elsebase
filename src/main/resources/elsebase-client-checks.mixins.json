@@ -3,6 +3,6 @@
   "minVersion": "0.8",
   "package": "dev.elsebase.client.checks",
   "compatibilityLevel": "JAVA_21",
-  "client": ["UncapturedMouseMixin"],
+  "client": ["UncapturedMouseMixin", "SilentAudioMixin"],
   "injectors": { "defaultRequire": 1 }
 }

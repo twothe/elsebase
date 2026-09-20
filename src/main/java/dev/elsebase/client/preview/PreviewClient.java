@@ -21,6 +21,8 @@ public final class PreviewClient {
     private static boolean failed;
     private static boolean restart;
     private PreviewClient() {}
+    /** Appearance updates invalidate only the bounded cached scene, never request destination chunk loads. */
+    public static void templatesChanged() { if(scene!=null) scene.dirty.addAll(scene.sections.keySet()); }
     public static void install() {
         PreviewProtocol.sceneReceiver=PreviewClient::receive;
         PreviewProtocol.sectionReceiver=value -> { if(scene!=null) scene.accept(value); };

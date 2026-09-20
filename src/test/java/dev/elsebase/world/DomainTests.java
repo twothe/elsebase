@@ -5,7 +5,8 @@ import java.util.*;
 /** Executable dependency-free behavior tests for the actual allocator and room layout. */
 public final class DomainTests {
     private static void require(boolean condition, String message) { if (!condition) throw new AssertionError(message); }
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        dev.elsebase.template.TemplateDomainTests.run();
         int[] attempts={0},reports={0};
         var quarantine=new dev.elsebase.preview.ModelQuarantine<String>((key,error) -> reports[0]++);
         require(quarantine.attempt("bad",() -> { attempts[0]++; throw new IllegalStateException("broken model"); })==null,"Faulty model is isolated");

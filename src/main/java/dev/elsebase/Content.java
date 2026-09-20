@@ -35,11 +35,13 @@ public final class Content {
     public static final DeferredItem<ToolItem> PORTAL_TOOL = ITEMS.register("portal_tool", () -> new ToolItem(ToolItem.Kind.PORTAL));
     public static final DeferredItem<ToolItem> REMOVAL_TOOL = ITEMS.register("removal_tool", () -> new ToolItem(ToolItem.Kind.REMOVE));
     public static final DeferredItem<ToolItem> CREATION_TOOL = ITEMS.register("creation_tool", () -> new ToolItem(ToolItem.Kind.CREATE));
+    public static final DeferredItem<ToolItem> SCANNER = ITEMS.register("scanner", () -> new ToolItem(ToolItem.Kind.SCAN));
+    public static final DeferredItem<ToolItem> PAINT_TOOL = ITEMS.register("paint_tool", () -> new ToolItem(ToolItem.Kind.PAINT));
     static {
         GENERATORS.register("rooms", () -> RoomGenerator.CODEC);
         TABS.register("elsebase", () -> CreativeModeTab.builder().title(Component.literal("Elsebase"))
                 .icon(() -> new ItemStack(PORTAL_TOOL.get())).displayItems((parameters, out) -> {
-                    out.accept(ANCHOR_TOOL.get()); out.accept(PORTAL_TOOL.get()); out.accept(REMOVAL_TOOL.get()); out.accept(CREATION_TOOL.get()); out.accept(CORE.get());
+                    out.accept(ANCHOR_TOOL.get()); out.accept(PORTAL_TOOL.get()); out.accept(REMOVAL_TOOL.get()); out.accept(CREATION_TOOL.get()); out.accept(PAINT_TOOL.get()); out.accept(SCANNER.get()); out.accept(CORE.get());
                     for (var block : new DeferredBlock<?>[]{FLOOR, BORDER, WALL, CEILING, LIGHT}) out.accept(block.get());
                 }).build());
     }

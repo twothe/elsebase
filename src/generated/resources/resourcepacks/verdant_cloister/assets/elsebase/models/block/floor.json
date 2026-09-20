@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/cube_bottom_top",
-  "textures": {
-    "top": "minecraft:block/mossy_stone_bricks",
-    "bottom": "minecraft:block/moss_block",
-    "side": "minecraft:block/polished_andesite"
-  }
-}

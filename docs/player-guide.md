@@ -1,14 +1,24 @@
 # Elsebase player guide
 
+## Custom room appearances
+
+Select a complete theme containing walls, floor and ceiling. Construction Tool builds with its selected theme; Paint Tool recolors the aimed surface and can set a personal default. Scan Tool captures the aimed room element into a private editable theme buffer and handles saving/import/export. Shift-right-click opens each tool's focused menu. See [Surface templates](surface-templates.md) for the full workflow.
+
+Paint without a selected theme opens the selection menu. **Use as default** and **Delete** sit below the preview, separate from Select/Cancel, and ask for confirmation. Delete is available only for your own server themes. Affected surfaces return to their region/global defaults; built-in, pack and other players' themes cannot be deleted. Exported personal copies remain untouched. The scanner's **New Theme** button creates a named private draft with plain stone surfaces; scan your designs and save when ready. Creating a new draft asks before discarding unsaved work. Room previews always look into the open corner; **Show ceiling** reveals the ceiling pattern.
+
+Vanilla and modded full blocks can be scanned without individual approval. Blocks with block entities, fluids or unsuitable shapes are rejected; your server may blacklist additional materials. Side textures and log orientation are supported. Animated textures can work, while models needing biome tint or special rendering may use a fallback. No source-block functions, resources or light emission are copied. Build your sample in the room's wall/floor/ceiling positions; the scanner recognizes player-placed blocks there as well as Elsebase structure.
+
+All seven built-in themes now use the approved detailed block designs. The old global theme resource packs are removed; use the tool menus to choose room appearances. Existing built-in assignments update after restarting; your personal theme copies stay unchanged.
+
 ## Enter and return
 
-Press **F** on solid ground with free space in front of you. Touch the portal surface within the copper-and-turquoise doorway to enter the Backdoor workspace. Access requires no item. F is also vanilla's default for swapping hands: rebind that action or the portal in Controls. Existing installations retain their saved keys; reset the Elsebase portal binding to adopt F.
+Press **F** with a free 1×2 block space in front of you. Touch the portal surface within the copper-and-turquoise doorway to enter the Backdoor workspace. Access requires no item. F is also vanilla's default for swapping hands: rebind that action or the portal in Controls. Existing installations retain their saved keys; reset the Elsebase portal binding to adopt F.
 
 Each player has one personal pair in total. F outside replaces the old pair and points to the home reference. F inside recalls only the inner doorway: the external return and reference stay fixed. If an inner doorway cannot be placed, F returns you directly outside instead. Only the owner can traverse a personal pair. Outside the Backdoor, an unused instant pair closes after 1,200 server ticks (one minute at normal tick rate). Summoning or successfully using a portal renews that minute. Both instant surfaces disappear; permanent portals remain. Inside the Backdoor the return never expires, including while logged out there. Offline outside owners still time out while the server runs; a stopped/paused world pauses its clock. Timer and residence survive saves/restarts.
 
 Your reference carpet exists from your first login and keeps its chunk ticking while you are online, even outside the Backdoor. Every personal-portal entry lands on the current carpet, including after recalling the inner portal or moving the anchor. Moving it transfers the loading; logout releases it. Entry checks its support and restores missing floor. If protection or an obstruction prevents repair, portal entry is refused rather than placing you over a hole. Permanent portals retain their fixed inner destinations. Leaving never requires a healthy anchor or a complete outside portal. A blocked/missing outside doorway uses a safe landing nearby, preserving any construction at its former location.
 
-Creating a doorway needs 1Ã—2 clear blocks, approach space, floor support and a footprint contained in one chunk. An existing doorway triggers on body contact with its inner surface, including when falling after its floor was mined. Your body need not fit completely inside the opening. If the inner frame cannot be placed because its floor is missing, personal entry still lands on the repaired anchor pedestal without creating that frame. F inside remains available for recall or direct escape. Vanilla-replaceable plants and snow are cleared from the frame and its approaches. Fluids, solid terrain, machines and block entities are preserved; normal claim permissions apply. Under heavy simultaneous traffic, step back and retry if the server reports busy.
+Creating a doorway needs only its 1×2 body to be clear. Walls may directly border it; neither surrounding approach space nor floor support is required. Body contact with the inner surface triggers travel, including while falling. Breaking either half immediately removes the other half of that doorway; the remembered outside return remains available. Vanilla-replaceable plants and snow are cleared only within the two portal blocks. Fluids, solid terrain, machines and block entities are preserved; normal claim permissions apply. If an inner frame is obstructed, personal entry still lands on the repaired anchor; F inside remains available for recall or direct escape. Under heavy simultaneous traffic, step back and retry if the server reports busy.
 
 The last outside entry point is saved separately from portal blocks. If no personal pair exists, F uses that remembered return; if no valid return remains, it finds a safe landing near the overworld spawn. In a void spawn area it can add a small stone safety platform in empty space. It does not clear buildings or machines. Operators can still use `/elsebase rescue` for exceptional recovery. New portal placement and anchor repair respect claims; retirement of your own stale instant-portal surfaces cannot block renewal.
 
@@ -72,7 +82,7 @@ Existing room chunks are not regenerated: old openings and the old bottom layer 
 
 ## Themes and settings
 
-Quiet Workshop is the default. Enable **one** optional Elsebase resource pack: Arcane Archive, Verdant Cloister, Astral Observatory, Deepstone Halls, Porcelain Sanctuary or Service Layer. Distribute the selected pack to all clients for a consistent modpack appearance.
+Quiet Workshop is the default. Choose from the seven built-in themes in the tool menus; the server shares each surface appearance with all players.
 
 Open **Mods â†’ Elsebase â†’ Config** from the main menu. Settings are stored in `config/elsebase-common.toml` and apply to this installation. Distribute that file as modpack defaults. On multiplayer servers, the server file controls gameplay and sends its brightness setting to clients; editing your local file cannot change server policy.
 

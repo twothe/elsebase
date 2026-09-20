@@ -75,6 +75,9 @@ public final class PortalRenderChecks {
                 var player=server.getPlayerList().getPlayer(id); var inner=server.getLevel(Elsebase.DIMENSION); var outer=server.overworld();
                 outside=new Endpoint(Level.OVERWORLD,new BlockPos(8,-60,8),Direction.SOUTH);
                 inside=new Endpoint(Elsebase.DIMENSION,new BlockPos(136,65,136),Direction.SOUTH);
+                var templates=dev.elsebase.template.TemplateState.get(server);
+                templates.entries.put("fixture/preview_floor",new dev.elsebase.template.TemplateState.Entry("fixture/preview_floor","",dev.elsebase.client.TemplateChecks.solidTheme("Portal floor fixture",Blocks.YELLOW_CONCRETE)));
+                templates.bind(new dev.elsebase.structure.StructuralEditor.Panel(8,8,Direction.DOWN,64),"fixture/preview_floor");
                 for(int x=7;x<=9;x++) for(int z=7;z<=9;z++) inner.getChunk(x,z);
                 for(var endpoint : List.of(outside,inside)) {
                     var level=server.getLevel(endpoint.dimension()); level.getChunkAt(endpoint.position());
@@ -94,6 +97,9 @@ public final class PortalRenderChecks {
             capture(mc,"elsebase-shader-fallback.png"); startCrossing(mc);
         } else if(stage==2 && ticks>100 && PreviewClient.scene!=null && PreviewClient.renderer.renderedFrames>20 && PreviewClient.renderer.ready) {
             require(PreviewClient.scene.sections.size()>=3,"Destination section streaming");
+            var floorPos=new BlockPos(135,64,136); var floorState=PreviewClient.scene.getBlockState(floorPos); var floorModel=mc.getBlockRenderer().getBlockModel(floorState);
+            var floorData=floorModel.getModelData(PreviewClient.scene,floorPos,floorState,net.neoforged.neoforge.client.model.data.ModelData.EMPTY);
+            require(floorModel.getQuads(floorState,Direction.UP,net.minecraft.util.RandomSource.create(0),floorData,net.minecraft.client.renderer.RenderType.solid()).stream().anyMatch(q -> q.getSprite().contents().name().getPath().endsWith("yellow_concrete")),"Portal snapshot uses authoritative custom floor template");
             capture(mc,"elsebase-live-portal.png");
             require(visibleDestinationColors(mc),"Red/blue destination pixels appear on the actual doorway surface");
             // Check actual offscreen pixels rather than treating a render call as proof of an image.

@@ -12,8 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 RESOURCES = ROOT / "src/generated/resources"
 ARCHIVE = ROOT / "build/moddev/artifacts/neoforge-21.1.250-client-extra-aka-minecraft-resources.jar"
-THEMES = ["quiet_workshop", "arcane_archive", "verdant_cloister", "astral_observatory",
-          "deepstone_halls", "porcelain_sanctuary", "service_layer"]
+
 
 
 def main():
@@ -54,9 +53,9 @@ def main():
                 crop = crop.resize((width, height), Image.Resampling.NEAREST)
                 canvas.paste(crop, (round(left+x0*scale), round(top+(16-y1)*scale)), crop)
 
-        for index, theme in enumerate(THEMES):
+        for index, theme in enumerate(["default_portal"]):
             left = 32 + index * 196
-            prefix = RESOURCES if index == 0 else RESOURCES / "resourcepacks" / theme
+            prefix = RESOURCES
             for x in range(8):
                 for y in range(16):
                     color = "#263a40" if (x+y) % 2 else "#2e454b"
@@ -70,12 +69,12 @@ def main():
             left = 45+index*275
             render(RESOURCES / f"assets/elsebase/models/item/{name}.json", left, 530, 8)
             draw.text((left, 672), name.replace("_", " ").title(), font=font, fill="#d9e5e7")
-        # Verify all bundled texture references, including optional packs the client has not enabled.
+        # Verify all bundled texture references, room patterns are covered by the actual-client fixture.
         for file in RESOURCES.rglob("*.json"):
             for reference in json.loads(file.read_text()).get("textures", {}).values():
                 if not reference.startswith("#"):
                     texture(reference)
-        print(f"Verified {len(textures)} local texture references across all seven themes.")
+        print(f"Verified {len(textures)} local texture references in static models.")
     output = ROOT / "build/model-preview.png"
     canvas.save(output)
     print(output)

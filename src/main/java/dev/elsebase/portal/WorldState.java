@@ -19,6 +19,8 @@ public final class WorldState extends SavedData {
     private record EndpointBlock(net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension, BlockPos position) {}
     private int radius, spacing;
     private SlotAllocator allocator;
+    /** Frozen grid spacing, also used for stable template regions before a player is online. */
+    public int allocationSpacing() { return spacing==0?Settings.SPACING.get():spacing; }
 
     public static WorldState get(MinecraftServer server) {
         var storage = server.overworld().getDataStorage();

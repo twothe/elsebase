@@ -1,8 +1,8 @@
 {
   "textures": {
-    "main": "minecraft:block/iron_block",
+    "main": "minecraft:block/stone_bricks",
     "trim": "minecraft:block/polished_andesite",
-    "particle": "minecraft:block/iron_block"
+    "particle": "minecraft:block/stone_bricks"
   },
   "elements": [
     {

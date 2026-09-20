@@ -1,6 +1,6 @@
 # Themes and essential configuration
 
-Status: implementation authorized on 2026-09-20. All seven themes have initial vanilla-texture resource-pack palettes; Quiet Workshop is the implementation default. The historical proposals below are superseded where necessary by [the implementation contract](implementation.md), which records actual settings, bounds and third-party customization. One visual style per modpack remains the scope.
+Status: the original global-skin proposal below is historical. The current implementation uses seven approved complete block-pattern themes with per-surface assignments and personal defaults; legacy global resource-pack palettes have been removed. See [surface templates](surface-templates.md) for current behavior and customization. Quiet Workshop remains the default.
 
 ## 1. Feasibility and scope
 

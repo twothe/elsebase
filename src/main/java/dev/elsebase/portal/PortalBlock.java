@@ -39,4 +39,17 @@ public final class PortalBlock extends Block implements net.minecraft.world.leve
     @Override protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (entity instanceof ServerPlayer player) Portals.cross(player, pos);
     }
+    private boolean matchingHalf(BlockState state,BlockState other) {
+        return other.is(this) && other.getValue(HALF)!=state.getValue(HALF);
+    }
+    /** Like vanilla doors, deleting one half removes the other through shape propagation. */
+    @Override protected BlockState updateShape(BlockState state,Direction side,BlockState neighbor,LevelAccessor level,BlockPos pos,BlockPos neighborPos) {
+        Direction counterpart=state.getValue(HALF)==DoubleBlockHalf.LOWER?Direction.UP:Direction.DOWN;
+        return side==counterpart && !matchingHalf(state,neighbor)?net.minecraft.world.level.block.Blocks.AIR.defaultBlockState():super.updateShape(state,side,neighbor,level,pos,neighborPos);
+    }
+    /** Atomic WorldEdits suppress shape propagation until commit, then issue neighbor notifications. */
+    @Override protected void neighborChanged(BlockState state,Level level,BlockPos pos,Block source,BlockPos sourcePos,boolean moved) {
+        var other=pos.relative(state.getValue(HALF)==DoubleBlockHalf.LOWER?Direction.UP:Direction.DOWN);
+        if(!level.isClientSide && sourcePos.equals(other) && !matchingHalf(state,level.getBlockState(other))) level.removeBlock(pos,false);
+    }
 }

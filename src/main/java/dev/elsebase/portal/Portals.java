@@ -56,7 +56,7 @@ public final class Portals {
         Endpoint near = nearby(player, old);
         if (near == null) {
             if (inside) escape(player,old);
-            else message(player, "No clear 1x2 doorway nearby. Leave room on both sides and a solid floor.");
+            else message(player, "No free 1x2 doorway nearby.");
             return;
         }
         if (!inside && !Anchors.ensure(player)) { message(player, "Reference floor or marker is obstructed or protected."); return; }
@@ -109,15 +109,6 @@ public final class Portals {
             if (!replaceable(level, pos) && !(s.is(Content.PORTAL.get()) && reclaimable(player.server,level,pos,replacing))) return false;
             if (!level.mayInteract(player, pos) && !(s.is(Content.PORTAL.get()) && reclaimable(player.server,level,pos,replacing))) return false;
         }
-        for (int x = 0; x < Endpoint.WIDTH; x++) {
-            BlockPos foot = endpoint.position().relative(endpoint.right(), x);
-            if (!level.getBlockState(foot.below()).isFaceSturdy(level, foot.below(), Direction.UP)) return false;
-            for (int side : new int[]{-1, 1}) for (int y = 0; y < Endpoint.HEIGHT; y++) {
-                BlockPos clear = foot.relative(endpoint.facing(), side).above(y);
-                if (!replaceable(level, clear) && !level.getBlockState(clear).is(Content.ANCHOR.get())
-                        && !(level.getBlockState(clear).is(Content.PORTAL.get()) && reclaimable(player.server,level,clear,replacing))) return false;
-            }
-        }
         return true;
     }
     private static boolean replaceable(ServerLevel level, BlockPos pos) {
@@ -125,11 +116,8 @@ public final class Portals {
         return state.canBeReplaced() && state.getFluidState().isEmpty() && level.getBlockEntity(pos) == null;
     }
     private static boolean oneChunk(Endpoint e) {
-        int x = e.position().getX() >> 4, z = e.position().getZ() >> 4;
-        for (BlockPos p : e.blocks()) for (int side : new int[]{-1, 1}) {
-            BlockPos q = p.relative(e.facing(), side);
-            if (q.getX() >> 4 != x || q.getZ() >> 4 != z) return false;
-        }
+        int x=e.position().getX()>>4,z=e.position().getZ()>>4;
+        for(BlockPos p:e.blocks()) if(p.getX()>>4!=x || p.getZ()>>4!=z) return false;
         return true;
     }
     /** Only unregistered remnants and the pair being replaced can be reclaimed; other owners remain protected. */
@@ -164,11 +152,6 @@ public final class Portals {
         if (!canFit(player,endpoint,old)) return false;
         var level = player.server.getLevel(endpoint.dimension());
         Map<BlockPos,BlockState> desired = new LinkedHashMap<>();
-        for (var pos : endpoint.blocks()) for (int side : new int[]{-1,1}) {
-            var approach = pos.relative(endpoint.facing(),side);
-            if (replaceable(level,approach) || level.getBlockState(approach).is(Content.PORTAL.get()) && reclaimable(player.server,level,approach,old))
-                desired.put(approach,Blocks.AIR.defaultBlockState());
-        }
         for (var pos : endpoint.blocks()) desired.put(pos,PortalBlock.stateAt(endpoint,pos));
         List<WorldEdits.Change> changes = new ArrayList<>();
         desired.forEach((pos,after) -> {
@@ -194,12 +177,6 @@ public final class Portals {
         }
         if (next != null) for (Endpoint endpoint : List.of(next.inner(), next.external())) {
             ServerLevel level = player.server.getLevel(endpoint.dimension());
-            // Approach snow can have collision; clear it in the same claim-aware transaction as the frame.
-            for (BlockPos pos : endpoint.blocks()) for (int side : new int[]{-1,1}) {
-                BlockPos approach = pos.relative(endpoint.facing(),side);
-                if (!level.getBlockState(approach).isAir() && replaceable(level,approach))
-                    desired.put(new Position(level,approach),Blocks.AIR.defaultBlockState());
-            }
             for (BlockPos pos : endpoint.blocks())
                 desired.put(new Position(level, pos), PortalBlock.stateAt(endpoint, pos));
         }
@@ -249,7 +226,7 @@ public final class Portals {
             return;
         }
         Endpoint endpoint = new Endpoint(player.level().dimension(), place, player.getDirection().getOpposite());
-        if (!canFit(player, endpoint, null)) { message(player, "A clear 1x2 doorway and floor are required, away from chunk edges."); return; }
+        if (!canFit(player, endpoint, null)) { message(player, "A free 1x2 doorway is required."); return; }
         if (endpoint.inner()) {
             LINKING.put(player.getUUID(), endpoint);
             message(player, "Inner endpoint selected. Use this tool outside to spend one Threshold Core and complete the pair."); return;

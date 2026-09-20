@@ -19,6 +19,13 @@ public final class ServerEvents {
     @SubscribeEvent public void starting(ServerStartingEvent event) {
         new dev.elsebase.world.SlotAllocator(Settings.RADIUS.get(), Settings.SPACING.get());
         WorldState.get(event.getServer());
+        dev.elsebase.template.TemplateServer.start(event.getServer());
+    }
+    @SubscribeEvent public void watched(net.neoforged.neoforge.event.level.ChunkWatchEvent.Sent event) {
+        if(event.getLevel().dimension().equals(Elsebase.DIMENSION)) dev.elsebase.template.TemplateServer.watch(event.getPlayer(),event.getPos(),true);
+    }
+    @SubscribeEvent public void unwatched(net.neoforged.neoforge.event.level.ChunkWatchEvent.UnWatch event) {
+        if(event.getLevel().dimension().equals(Elsebase.DIMENSION)) dev.elsebase.template.TemplateServer.watch(event.getPlayer(),event.getPos(),false);
     }
     @SubscribeEvent public void chunkLoaded(ChunkEvent.Load event) {
         if (!(event.getLevel() instanceof net.minecraft.server.level.ServerLevel level)
@@ -48,6 +55,7 @@ public final class ServerEvents {
         }
     }
     @SubscribeEvent public void tick(ServerTickEvent.Post event) {
+        dev.elsebase.template.TemplateServer.tick(event.getServer());
         Portals.tick();
         InstantExpiry.tick(event.getServer());
         StructuralEditor.tick(event.getServer());
@@ -57,9 +65,10 @@ public final class ServerEvents {
         }
     }
     @SubscribeEvent public void stopping(ServerStoppingEvent event) {
+        dev.elsebase.template.TemplateServer.clear();
         Network.serverStopped(); Anchors.clear(); MirrorLoading.clear(); Portals.clear(); StructuralEditor.clear(); dev.elsebase.preview.PreviewServer.clear();
     }
-    @SubscribeEvent public void logout(PlayerEvent.PlayerLoggedOutEvent event) { if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) InstantExpiry.residence(player); Anchors.release(event.getEntity().getUUID()); Portals.logout(event.getEntity().getUUID()); dev.elsebase.preview.PreviewServer.logout(event.getEntity().getUUID()); }
+    @SubscribeEvent public void logout(PlayerEvent.PlayerLoggedOutEvent event) { if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) InstantExpiry.residence(player); Anchors.release(event.getEntity().getUUID()); Portals.logout(event.getEntity().getUUID()); dev.elsebase.template.TemplateServer.logout(event.getEntity().getUUID()); dev.elsebase.preview.PreviewServer.logout(event.getEntity().getUUID()); }
     @SubscribeEvent public void login(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
             Network.syncLighting(player);
@@ -82,6 +91,7 @@ public final class ServerEvents {
             event.setResult(MobSpawnEvent.PositionCheck.Result.FAIL);
     }
     @SubscribeEvent public void commands(RegisterCommandsEvent event) {
+        dev.elsebase.template.TemplateServer.commands(event);
         event.getDispatcher().register(Commands.literal("elsebase")
                 .then(Commands.literal("portal").executes(c -> { Portals.request(c.getSource().getPlayerOrException()); return 1; }))
                 .then(Commands.literal("rescue").requires(source -> source.hasPermission(2)).executes(c -> {

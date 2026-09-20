@@ -14,6 +14,9 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+// Minecraft already supplies Gson; standalone parser regression tests need it on their own runtime classpath.
+dependencies { testRuntimeOnly 'com.google.code.gson:gson:2.10.1' }
+
 sourceSets.main.resources {
     srcDir 'src/generated/resources'
     exclude '**/.cache/**', '**/*.bbmodel'
@@ -31,12 +34,19 @@ neoForge {
     runs {
         client {
             client()
-            // Automated fixtures control the camera themselves and must not capture the desktop cursor.
-            if (['verifyClient', 'verifyPreview', 'verifyPortals'].any { project.hasProperty(it) }) {
+            // Automated fixtures keep the desktop cursor free and audio muted without altering saved options.
+            if (['verifyClient', 'verifyPreview', 'verifyPortals', 'verifyTemplates'].any { project.hasProperty(it) }) {
                 programArguments.addAll '--mixin', 'elsebase-client-checks.mixins.json'
             }
             if (project.hasProperty('verifyClient')) systemProperty 'elsebase.verifyClient', 'true'
             if (project.hasProperty('verifyPreview')) systemProperty 'elsebase.verifyPreview', 'true'
+            if (project.hasProperty('verifyTemplates')) {
+                def profile = project.findProperty('templateProfile') ?: 'vanilla'
+                if (!(profile in ['vanilla', 'iris', 'iris-active'])) throw new GradleException('Unknown templateProfile')
+                gameDirectory = file(profile == 'vanilla' ? 'build/template-client' : "build/template-client-${profile}")
+                systemProperty 'elsebase.verifyTemplates', 'true'
+                systemProperty 'elsebase.templateShaderExpected', profile == 'iris-active' ? 'true' : 'false'
+            }
             if (project.hasProperty('verifyPortals')) {
                 def profile = project.findProperty('portalProfile') ?: 'vanilla'
                 if (!(profile in ['vanilla', 'iris', 'iris-active'])) throw new GradleException('Unknown portalProfile')
@@ -52,7 +62,7 @@ neoForge {
         }
         gameTestServer {
             type = 'gameTestServer'
-            gameDirectory = file('build/gametest-v4')
+            gameDirectory = file('build/gametest-themes-v2')
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
         data {

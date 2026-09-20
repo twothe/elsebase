@@ -14,6 +14,15 @@ public final class PanelSelection {
 
     /** Creation targets the virtual room shell. Removal can reach the exposed adjoining wall half. */
     public static StructuralEditor.Panel select(Level level, Vec3 feet, Vec3 eye, Vec3 look, boolean restore) {
+        return select(level,feet,eye,look,restore,false);
+    }
+
+    /** Scanning targets ordinary source blocks too, including invalid materials for red highlighting. */
+    public static StructuralEditor.Panel scan(Level level, Vec3 feet, Vec3 eye, Vec3 look) {
+        return select(level,feet,eye,look,false,true);
+    }
+
+    private static StructuralEditor.Panel select(Level level, Vec3 feet, Vec3 eye, Vec3 look, boolean restore, boolean scan) {
         int cx = Math.floorDiv((int)Math.floor(feet.x),16), cz = Math.floorDiv((int)Math.floor(feet.z),16);
         int floor = RoomLayout.floorAt((int)Math.floor(feet.y));
         if (floor < 0 || floor >= RoomLayout.HEIGHT-1 || look.lengthSqr() < 0.5) return null;
@@ -31,10 +40,10 @@ public final class PanelSelection {
             }
         }
         if (nearest == null || !level.hasChunk(nearest.cellX(),nearest.cellZ())) return null;
-        if (restore || nearest.side().getAxis()==Direction.Axis.Y || hitsStructure(level,nearest,eye,end)) return nearest;
+        if (restore || nearest.side().getAxis()==Direction.Axis.Y || hitsSurface(level,nearest,eye,end,scan)) return nearest;
         Direction side = nearest.side();
         var neighbor = new StructuralEditor.Panel(cx+side.getStepX(),cz+side.getStepZ(),side.getOpposite(),floor);
-        if (level.hasChunk(neighbor.cellX(),neighbor.cellZ()) && hitsStructure(level,neighbor,eye,end)) return neighbor;
+        if (level.hasChunk(neighbor.cellX(),neighbor.cellZ()) && hitsSurface(level,neighbor,eye,end,scan)) return neighbor;
         return nearest;
     }
 
@@ -59,10 +68,11 @@ public final class PanelSelection {
         };
     }
 
-    private static boolean hitsStructure(Level level, StructuralEditor.Panel panel, Vec3 eye, Vec3 end) {
+    private static boolean hitsSurface(Level level, StructuralEditor.Panel panel, Vec3 eye, Vec3 end, boolean scan) {
         // At most 98 wall blocks. Read loaded state only; preview never requests chunk generation.
         for (BlockPos pos : panel.positions(false)) {
-            if (StructuralBlock.protectedStructure(level,level.getBlockState(pos))
+            var state=level.getBlockState(pos);
+            if ((scan?!state.isAir():StructuralBlock.protectedStructure(level,state))
                     && (new AABB(pos).contains(eye) || new AABB(pos).clip(eye,end).isPresent())) return true;
         }
         return false;

@@ -12,6 +12,17 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 /** Bounded atomic edits: validate protection, capture changes without notifications, roll back denied placements. */
 public final class WorldEdits {
     public record Change(ServerLevel level, BlockPos pos, BlockState before, BlockState after) {}
+    /** Cosmetic bindings still require build permission and claim approval for each structural block. */
+    public static boolean authorizeAppearance(ServerPlayer player,List<BlockPos> positions) {
+        if(player.isSpectator() || !player.mayBuild() || positions.size()>256) return false;
+        var level=player.serverLevel();
+        for(var pos:positions) {
+            if(!level.hasChunkAt(pos) || !level.getWorldBorder().isWithinBounds(pos) || !level.mayInteract(player,pos)) return false;
+            var state=level.getBlockState(pos);
+            if(NeoForge.EVENT_BUS.post(new BlockEvent.BreakEvent(level,pos,state,player)).isCanceled()) return false;
+        }
+        return true;
+    }
     public static boolean apply(ServerPlayer player, List<Change> changes) {
         if (changes.size() > 256) throw new IllegalArgumentException("Atomic edit exceeds one panel");
         for (Change c : changes) {

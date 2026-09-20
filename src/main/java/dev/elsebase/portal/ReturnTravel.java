@@ -58,6 +58,10 @@ public final class ReturnTravel {
     }
     /** Returns near the saved outside endpoint, falling back to the overworld spawn even without a pair. */
     public static void escape(ServerPlayer player, Endpoint endpoint, Vec3 preferred) {
+        escape(player,endpoint,preferred,null);
+    }
+    /** A source frame identifies actual doorway travel; direct F recovery retains vanilla presentation. */
+    public static void escape(ServerPlayer player, Endpoint endpoint, Vec3 preferred, Endpoint source) {
         ServerLevel destination = endpoint==null ? null : player.server.getLevel(endpoint.dimension());
         Vec3 landing = destination==null ? null : nearby(player,destination,preferred==null ? endpoint.center() : preferred);
         if (landing==null) {
@@ -77,7 +81,13 @@ public final class ReturnTravel {
             Portals.message(player,"Outside destination unavailable; returned to a safe place near world spawn.");
         }
         player.stopRiding();
-        player.teleportTo(destination,landing.x,landing.y,landing.z,player.getYRot(),player.getXRot());
+        float yaw=player.getYRot();
+        if(source!=null) {
+            var actual=new Endpoint(destination.dimension(),BlockPos.containing(landing),endpoint==null?source.facing():endpoint.facing());
+            if(endpoint!=null) yaw+=dev.elsebase.preview.PortalView.rotation(source,endpoint);
+            dev.elsebase.preview.PreviewServer.transfer(player,source,actual,landing,yaw,player.getXRot());
+        }
+        player.teleportTo(destination,landing.x,landing.y,landing.z,yaw,player.getXRot());
         player.setDeltaMovement(Vec3.ZERO); player.fallDistance=0;
     }
     /** Last resort for void/blocked spawn worlds: add footing in empty sky; never clear existing builds. */

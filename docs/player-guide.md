@@ -2,7 +2,7 @@
 
 ## Enter and return
 
-Press **F** on solid ground with free space in front of you. Touch the animated portal surface within the copper-and-turquoise doorway to enter the Backdoor workspace. Access requires no item. F is also vanilla's default for swapping hands: rebind that action or the portal in Controls. Existing installations retain their saved keys; reset the Elsebase portal binding to adopt F.
+Press **F** on solid ground with free space in front of you. Touch the portal surface within the copper-and-turquoise doorway to enter the Backdoor workspace. Access requires no item. F is also vanilla's default for swapping hands: rebind that action or the portal in Controls. Existing installations retain their saved keys; reset the Elsebase portal binding to adopt F.
 
 Each player has one personal pair in total. F outside replaces the old pair and points to the home reference. F inside recalls only the inner doorway: the external return and reference stay fixed. If an inner doorway cannot be placed, F returns you directly outside instead. Only the owner can traverse a personal pair. Outside the Backdoor, an unused instant pair closes after 1,200 server ticks (one minute at normal tick rate). Summoning or successfully using a portal renews that minute. Both instant surfaces disappear; permanent portals remain. Inside the Backdoor the return never expires, including while logged out there. Offline outside owners still time out while the server runs; a stopped/paused world pauses its clock. Timer and residence survive saves/restarts.
 
@@ -11,6 +11,18 @@ Your reference carpet exists from your first login and keeps its chunk ticking w
 Creating a doorway needs 1×2 clear blocks, approach space, floor support and a footprint contained in one chunk. An existing doorway triggers on body contact with its inner surface, including when falling after its floor was mined. Your body need not fit completely inside the opening. If the inner frame cannot be placed because its floor is missing, personal entry still lands on the repaired anchor pedestal without creating that frame. F inside remains available for recall or direct escape. Vanilla-replaceable plants and snow are cleared from the frame and its approaches. Fluids, solid terrain, machines and block entities are preserved; normal claim permissions apply. Under heavy simultaneous traffic, step back and retry if the server reports busy.
 
 The last outside entry point is saved separately from portal blocks. If no personal pair exists, F uses that remembered return; if no valid return remains, it finds a safe landing near the overworld spawn. In a void spawn area it can add a small stone safety platform in empty space. It does not clear buildings or machines. Operators can still use `/elsebase rescue` for exceptional recovery. New portal placement and anchor repair respect claims; retirement of your own stale instant-portal surfaces cannot block renewal.
+
+## Looking through portals
+
+Nearby portals can show the destination with a perspective that follows your movement. The preview covers a limited area and shows ordinary blocks, fluids and lighting. Moving creatures and special machine/chest renderers are not included yet. Personal entrances show your current spawn-anchor area.
+
+`config/elsebase-client.toml` contains `render.previewQuality` (OFF, LOW, BALANCED, HIGH) and `render.immersivePortalTransition`. They are also available through **Mods → Elsebase → Config**. The server controls the shared `preview.budget` in its common config. Turning off previews does not disable travel.
+
+With an active Iris shaderpack, Elsebase automatically uses its animated portal texture for compatibility. With shaders disabled, live previews can work alongside Iris/Sodium. A model that fails in the preview is skipped until restart or resource reload; other models remain visible.
+
+Passing through an Elsebase doorway replaces the usual loading backdrop with a destination image, or a short portal-colored transition if no image is available. Slow loading can still cause a pause. Login, death, commands and direct F emergency return retain their usual screens.
+
+Use a new test world or recreate portals from earlier development builds: the new visible surface uses non-ticking block entities that older portals may not have saved. Existing builds are never regenerated automatically.
 
 ## Tools
 

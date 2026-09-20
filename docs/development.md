@@ -1,6 +1,32 @@
 # Development and verification
 
-## Portal contact, visible surface and outside timeout — current build
+## Cursor behavior during automated client checks
+
+`runClient -PverifyClient`, `-PverifyPreview` and `-PverifyPortals` (including `tools/check-portals.ps1`) automatically load a test-only mouse mixin through the launch arguments. It cancels `MouseHandler.grabMouse` before Minecraft centers or captures the desktop cursor. The pinned 1.21.1 implementation has no cancellable NeoForge event at this call. Test fixtures control their own camera; mouse-look is intentionally unavailable during these runs. Normal `runClient` and installed mod launches do not register this mixin and keep normal controls.
+
+The portal regression checks both Minecraft's capture flag and GLFW's actual cursor mode throughout the run, including loading, resource reload and dimension travel, and explicitly attempts capture after joining the world. Keep the mixin configuration out of the mod's metadata: it must only be enabled by the automated launch flags.
+
+Verified with a complete vanilla/Fancy portal client run: explicit capture was suppressed, the cursor remained normal throughout, and all rendering/transfer assertions passed. `build` also passed. The other two client fixtures share the launch hook but were not rerun for this test-only change.
+
+## Bounded live portal rendering — current build
+
+Implemented after the user's explicit Go. See [rendering contracts and reproducible commands](portal-rendering.md). Current verification includes the production quarantine domain checks, **15 GameTests**, and self-terminating real-client fixtures in isolated `build/portal-client-*` directories.
+
+Actual client checks passed for vanilla Fast, Fancy and Fabulous, Iris **1.8.12** with Sodium **0.6.13** and shaders disabled, and the same combination with an active authored minimal shaderpack. The active-shader profile verified automatic static fallback, no destination streaming, working portal travel and replacement of exactly the two receiving screens. This is not live-view support inside shaderpacks or certification of arbitrary packs.
+
+The final expanded live-view checks verify actual red/blue destination pixels on the doorway, offscreen image variation, both-sided/cardinal off-axis projection, block updates, fluid/glass models, target darkness while the source stays bright, resource reload with fresh snapshots, injected faulty-model quarantine/reset, full-screen arrival capture, normal behavior for unmarked teleports, and quality-OFF cleanup. The final full expanded runs used Fabulous and Iris/Sodium without shaders; earlier Fast/Fancy runs covered the same lifecycle, with the visible-pixel check added subsequently. Screenshots were also visually inspected for the live doorway and dark target. A broken emerald model is intentional test injection and produces an expected bounded warning rather than a crash.
+
+Example measured p95 CPU render-submission time for one balanced preview on the test host's RTX 3070 Ti: **0.559 ms** in the final Fabulous run and **0.113 ms** with Iris/Sodium and shaders disabled. These values exclude mesh construction, GPU completion, WAN latency and multi-client load; they are fixture observations, not performance guarantees. Per-run JSON reports and screenshots are retained with the fixture.
+
+Regression work exposed and corrected four concrete lifecycle/rendering defects: a viewer removed during the bounded snapshot loop could be revisited from its old iteration list; vanilla float sine-table rotation did not produce exact cardinal round-trips; local resource-cache reset required an explicit server snapshot restart; and rendering the destination portal's own fallback face covered the scene. Actual-aperture pixel assertions now catch the last issue, which framebuffer-only checks missed. Target portals elsewhere in the scene remain non-recursive placeholders.
+
+`tools/check-portals.ps1` rejects nonzero client exit, missing reports and stale success. `tools/prepare-render-compat.py` pins and SHA-512-checks optional test-only dependencies. No third-party JARs, worlds, logs, game source extracts or shader fixture binaries are included in the mod artifact. Graphical tests require a desktop/OpenGL environment; explicit packet-codec GameTests supplement integrated-server client transport. Remote TCP multiplayer, adverse latency, 100 simultaneous viewers and arbitrary modpack models remain unverified.
+
+No generation changes or save-format migration are introduced. Existing development portals may need recreation because surfaces now have non-ticking block entities; a new test world is recommended. Save version is still 4; network protocol is now 4.
+
+Final `build runGameTestServer` completed successfully with all 15 required tests and clean server shutdown. JAR: `build/libs/elsebase-0.1.0-SNAPSHOT.jar`, SHA-256 `44358E99F124E0F7A199CA66D0C265D471B5029372873FEB17F5838AD67D1CE4`. All 95 generated/custom JSON resources parsed, including seven fallback models; original design SHA-256 remains unchanged. Final review also connected immediate logout cleanup and bounded subscription reconciliation after server-budget changes.
+
+## Previous portal contact, visible surface and outside timeout build
 
 `gradlew build runGameTestServer` passed with all **13 GameTests**, domain tests, clean world saving and exit code 0. The new test calls the actual BlockState entityInside callback with the player's feet below an unsupported inner portal; body contact successfully returns outside. Earlier full-body restrictions would reject this state. Wholly outside bodies still do not trigger. A personal entry test removes both the inner frame and its support, then confirms arrival on the repaired anchor pedestal without reconstructing the unsupported frame.
 

@@ -1,4 +1,5 @@
 {
+  "elsebase.portal.loading": "Crossing the threshold…",
   "key.categories.elsebase": "Elsebase",
   "key.elsebase.portal": "Summon / recall instant portal",
   "item.elsebase.anchor_tool": "Spawn Anchor Tool",
@@ -19,6 +20,11 @@
   "elsebase.configuration.structure": "Structural tools",
   "elsebase.configuration.allocation": "Personal area allocation",
   "elsebase.configuration.world": "Dimension",
+  "elsebase.configuration.preview": "Portal previews",
+  "elsebase.configuration.budget": "Shared preview budget",
+  "elsebase.configuration.render": "Rendering",
+  "elsebase.configuration.previewQuality": "Portal preview quality",
+  "elsebase.configuration.immersivePortalTransition": "Immersive portal transition",
   "elsebase.configuration.allowInstant": "Allow instant portals",
   "elsebase.configuration.maxPermanentPairsPerPlayer": "Permanent portal pairs per player",
   "elsebase.configuration.excludedExternalDimensions": "Blocked entrance dimensions",

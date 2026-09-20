@@ -14,7 +14,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 /** Development-only GameTests exercise registry initialization, generation and persisted gameplay contracts. */
 @PrefixGameTestTemplate(false)
 public final class IntegrationTests {
-    public static void register(RegisterGameTestsEvent event) { event.register(IntegrationTests.class); }
+    public static void register(RegisterGameTestsEvent event) { event.register(IntegrationTests.class); event.register(dev.elsebase.preview.PreviewIntegrationTests.class); }
     @BeforeBatch(batch = "defaultBatch")
     public static void resetTestRegistry(net.minecraft.server.level.ServerLevel level) {
         if (!Boolean.getBoolean("neoforge.gameTestServer")) return;

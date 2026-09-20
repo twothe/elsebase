@@ -278,7 +278,7 @@ public final class Portals {
         PortalPair pair = data.at(player.level().dimension(), surface);
         if (pair == null || !pair.permanent() && !pair.owner().equals(player.getUUID())) return;
         Endpoint source = player.level().dimension().equals(Elsebase.DIMENSION) ? pair.inner() : pair.external();
-        Endpoint target = source.inner() ? pair.external() : pair.inner();
+        Endpoint target = dev.elsebase.preview.PortalView.target(data,pair,source);
         Vec3 center = source.center();
         Vec3 normal = Vec3.atLowerCornerOf(source.facing().getNormal());
         double before = new Vec3(player.xo, player.yo, player.zo).subtract(center).dot(normal);
@@ -297,7 +297,7 @@ public final class Portals {
                 .add(0, player.getY() - center.y, 0);
         if (source.inner()) {
             COOLDOWNS.put(player.getUUID(),now+15);
-            ReturnTravel.escape(player,target,exit);
+            ReturnTravel.escape(player,target,exit,source);
             InstantExpiry.used(player);
             return;
         }
@@ -312,9 +312,10 @@ public final class Portals {
         destination.getChunkAt(BlockPos.containing(exit));
         if (!ReturnTravel.safe(player,destination,exit)) { blocked(player,now); return; }
         data.rememberReturn(player.getUUID(),source);
-        float rotation = target.facing().toYRot() - source.facing().toYRot() + 180;
+        float rotation = dev.elsebase.preview.PortalView.rotation(source,target);
         Vec3 velocity = pair.permanent() ? player.getDeltaMovement().yRot((float) -Math.toRadians(rotation)) : Vec3.ZERO;
         COOLDOWNS.put(player.getUUID(), now + 15);
+        dev.elsebase.preview.PreviewServer.transfer(player,source,target,exit,player.getYRot()+rotation,player.getXRot());
         player.teleportTo(destination, exit.x, exit.y, exit.z, Set.of(), player.getYRot() + rotation, player.getXRot());
         player.setDeltaMovement(velocity); player.fallDistance = 0;
         InstantExpiry.used(player);

@@ -26,7 +26,7 @@ public final class Elsebase {
         bus.addListener(Themes::register);
         bus.addListener(IntegrationTests::register);
         NeoForge.EVENT_BUS.register(new ServerEvents());
-        LOGGER.info("Elsebase initialized: persistent rooms and static portal surfaces");
+        LOGGER.info("Elsebase initialized: persistent rooms, bounded portal previews and safe travel");
     }
 
     public static ResourceLocation id(String path) {

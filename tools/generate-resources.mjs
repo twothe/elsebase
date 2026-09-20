@@ -86,7 +86,7 @@ for (const [theme, textures] of Object.entries(themes)) {
 
         {parent:'minecraft:block/cube_bottom_top',textures:{top:texture(textures[index]),bottom:texture(name === 'floor' ? textures[3] : textures[index]),side:texture(textures[1])}}));
 
-    // A visibly open 1x2 threshold: no opaque sheet and no fake destination view.
+    // Static 1x2 doorway trim; a non-ticking renderer owns the live/fallback aperture.
 
     const magical = ['arcane_archive','verdant_cloister','astral_observatory','deepstone_halls'].includes(theme);
 
@@ -94,6 +94,7 @@ for (const [theme, textures] of Object.entries(themes)) {
 
     const inlay = texture(magical ? textures[4] : 'oxidized_copper');
 
+    write(prefix+'assets/elsebase/models/block/portal_surface.json',{textures:{particle:'minecraft:block/nether_portal'},elements:[]});
     for (const half of ['lower','upper']) {
 
         const elements = [box([0,0,6],[1,16,10],'rim'),box([15,0,6],[16,16,10],'rim'),
@@ -106,8 +107,7 @@ for (const [theme, textures] of Object.entries(themes)) {
 
         else elements.push(box([1,15,6],[15,16,10],'rim'),box([6.5,13.5,5.5],[9.5,15.5,6],'inlay'),box([6.5,13.5,10],[9.5,15.5,10.5],'inlay'));
 
-        elements.push({from:[1,half==='lower'?0.5:0,8],to:[15,half==='upper'?15:16,8],shade:false,
-            faces:{north:{texture:'#surface',uv:[0,0,16,16]},south:{texture:'#surface',uv:[0,0,16,16]}}});
+        // The non-ticking portal surface renderer selects live view versus this resource-pack fallback.
         write(prefix+'assets/elsebase/models/block/portal_'+half+'.json',{render_type:'minecraft:translucent',textures:{rim,inlay,surface:'minecraft:block/nether_portal',particle:rim},elements});
 
     }
@@ -162,6 +162,7 @@ for (const [name,elements] of Object.entries(toolParts))
 
 const english={
 
+    'elsebase.portal.loading':'Crossing the threshold…',
     'key.categories.elsebase':'Elsebase','key.elsebase.portal':'Summon / recall instant portal',
 
     'item.elsebase.anchor_tool':'Spawn Anchor Tool','item.elsebase.portal_tool':'Portal Generator','item.elsebase.removal_tool':'Removal Tool','item.elsebase.creation_tool':'Creation Tool','item.elsebase.threshold_core':'Threshold Core',
@@ -177,6 +178,9 @@ Object.assign(english, {
     'elsebase.configuration.portals':'Portals', 'elsebase.configuration.chunkloading':'Chunk loading',
     'elsebase.configuration.structure':'Structural tools', 'elsebase.configuration.allocation':'Personal area allocation',
     'elsebase.configuration.world':'Dimension',
+    'elsebase.configuration.preview':'Portal previews', 'elsebase.configuration.budget':'Shared preview budget',
+    'elsebase.configuration.render':'Rendering', 'elsebase.configuration.previewQuality':'Portal preview quality',
+    'elsebase.configuration.immersivePortalTransition':'Immersive portal transition',
     'elsebase.configuration.allowInstant':'Allow instant portals',
     'elsebase.configuration.maxPermanentPairsPerPlayer':'Permanent portal pairs per player',
     'elsebase.configuration.excludedExternalDimensions':'Blocked entrance dimensions',
@@ -209,6 +213,9 @@ write('assets/elsebase/lang/de_de.json',{...english,
     'elsebase.configuration.portals':'Portale', 'elsebase.configuration.chunkloading':'Chunkloading',
     'elsebase.configuration.structure':'Strukturwerkzeuge', 'elsebase.configuration.allocation':'Persönliche Startbereiche',
     'elsebase.configuration.world':'Dimension',
+    'elsebase.configuration.preview':'Portalvorschau', 'elsebase.configuration.budget':'Gemeinsames Vorschau-Budget',
+    'elsebase.configuration.render':'Darstellung', 'elsebase.configuration.previewQuality':'Qualität der Portalvorschau',
+    'elsebase.configuration.immersivePortalTransition':'Immersiver Portalübergang',
     'elsebase.configuration.allowInstant':'Instant-Portale erlauben',
     'elsebase.configuration.maxPermanentPairsPerPlayer':'Permanente Portalpaare pro Spieler',
     'elsebase.configuration.excludedExternalDimensions':'Dimensionen ohne neue Eingänge',
@@ -232,6 +239,7 @@ write('assets/elsebase/lang/de_de.json',{...english,
 
 
 
+    'elsebase.portal.loading':'Durchgang wird vorbereitet…',
     'key.elsebase.portal':'Instant-Portal rufen / versetzen',
 
     'item.elsebase.anchor_tool':'Spawn-Ankerwerkzeug','item.elsebase.portal_tool':'Portalgenerator','item.elsebase.removal_tool':'Löschwerkzeug','item.elsebase.creation_tool':'Herstellwerkzeug','item.elsebase.threshold_core':'Portalkern',

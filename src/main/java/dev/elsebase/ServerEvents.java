@@ -51,14 +51,15 @@ public final class ServerEvents {
         Portals.tick();
         InstantExpiry.tick(event.getServer());
         StructuralEditor.tick(event.getServer());
+        dev.elsebase.preview.PreviewServer.tick(event.getServer());
         if (event.getServer().getTickCount() % 20 == 0) {
             MirrorLoading.tick(event.getServer()); Network.refreshLighting(event.getServer());
         }
     }
     @SubscribeEvent public void stopping(ServerStoppingEvent event) {
-        Network.serverStopped(); Anchors.clear(); MirrorLoading.clear(); Portals.clear(); StructuralEditor.clear();
+        Network.serverStopped(); Anchors.clear(); MirrorLoading.clear(); Portals.clear(); StructuralEditor.clear(); dev.elsebase.preview.PreviewServer.clear();
     }
-    @SubscribeEvent public void logout(PlayerEvent.PlayerLoggedOutEvent event) { if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) InstantExpiry.residence(player); Anchors.release(event.getEntity().getUUID()); Portals.logout(event.getEntity().getUUID()); }
+    @SubscribeEvent public void logout(PlayerEvent.PlayerLoggedOutEvent event) { if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) InstantExpiry.residence(player); Anchors.release(event.getEntity().getUUID()); Portals.logout(event.getEntity().getUUID()); dev.elsebase.preview.PreviewServer.logout(event.getEntity().getUUID()); }
     @SubscribeEvent public void login(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
             Network.syncLighting(player);

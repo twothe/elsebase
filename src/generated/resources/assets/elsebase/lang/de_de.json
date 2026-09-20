@@ -1,4 +1,5 @@
 {
+  "elsebase.portal.loading": "Durchgang wird vorbereitet…",
   "key.categories.elsebase": "Elsebase",
   "key.elsebase.portal": "Instant-Portal rufen / versetzen",
   "item.elsebase.anchor_tool": "Spawn-Ankerwerkzeug",
@@ -19,6 +20,11 @@
   "elsebase.configuration.structure": "Strukturwerkzeuge",
   "elsebase.configuration.allocation": "Persönliche Startbereiche",
   "elsebase.configuration.world": "Dimension",
+  "elsebase.configuration.preview": "Portalvorschau",
+  "elsebase.configuration.budget": "Gemeinsames Vorschau-Budget",
+  "elsebase.configuration.render": "Darstellung",
+  "elsebase.configuration.previewQuality": "Qualität der Portalvorschau",
+  "elsebase.configuration.immersivePortalTransition": "Immersiver Portalübergang",
   "elsebase.configuration.allowInstant": "Instant-Portale erlauben",
   "elsebase.configuration.maxPermanentPairsPerPlayer": "Permanente Portalpaare pro Spieler",
   "elsebase.configuration.excludedExternalDimensions": "Dimensionen ohne neue Eingänge",

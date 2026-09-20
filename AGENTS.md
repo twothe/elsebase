@@ -3,7 +3,7 @@
 ## Behaviour
 
 - Tool usability, stacked rooms and anchor loading/safety are authorized and implemented; see `docs/stacked-rooms-and-anchors.md`.
-- Current phase: first playable static-portal implementation, authorized by the user on 2026-09-20. Follow confirmed discussion decisions and `docs/implementation.md` over conflicting original proposals.
+- Current phase: bounded live portal rendering and selective dimension transitions, explicitly authorized by the user on 2026-09-20. Follow confirmed discussion decisions and `docs/implementation.md` over conflicting original proposals.
 - Communicate in German. Code, identifiers and technical documentation use English, following the original specification.
 - Preserve `docs/backroom-industry-design.md` as the original input. Record open questions and agreed changes separately until the design is approved.
 - Target Minecraft 1.21.1, NeoForge and Java 21. Use the checked-in Gradle wrapper and pinned versions.
@@ -23,10 +23,12 @@
 
 ## Project Overview
 
-Elsebase implements a permanent workspace dimension with chunk-aligned rooms, reversible structural editing, persistent personal references and static cross-dimensional doorways. Namespace/package: `elsebase` / `dev.elsebase`. Seven initial palettes support technology and magic packs. Live previews and final bespoke artwork/audio are follow-up work.
+Elsebase implements a permanent workspace dimension with chunk-aligned rooms, reversible structural editing, persistent personal references and static cross-dimensional doorways. Namespace/package: `elsebase` / `dev.elsebase`. Seven initial palettes support technology and magic packs. Bounded block previews and portal-only transition images are implemented; final bespoke artwork/audio and general entity/machine previews remain follow-up work.
 
 ## Documentation Index
 
+- [Portal rendering](docs/portal-rendering.md): delivered scene/transition contracts, runtime model quarantine, shader fallback and repeatable client compatibility tests.
+- [Portal preview proposal](docs/portal-preview-plan.md): historical pinned-source investigation and alternatives; approved for implementation, actual scope is in the rendering document.
 - [Stacked rooms and anchors](docs/stacked-rooms-and-anchors.md): 128-block geometry, mandatory exits, generation trade-offs, tools and online anchor lifecycle.
 - [Original design](docs/backroom-industry-design.md): preserved historical specification; later decisions override conflicting proposals.
 - [Implementation](docs/implementation.md): current architecture, lifecycle, defaults, performance bounds, customization and known limits.
@@ -62,3 +64,5 @@ Elsebase implements a permanent workspace dimension with chunk-aligned rooms, re
 - Personal portal entry always resolves the current anchor; outside return is independent of anchor health and physical frame completeness. F inside must offer direct safe escape if recall cannot be placed. Keep remembered returns separate from portal lifetime; reclaim own stale frames without clearing player construction or other registered pairs.
 
 - Portal interior body contact must work while falling without source flooring. Missing inner frames are valid for personal anchor arrival. Instant pairs expire after 1200 world ticks outside, refresh on successful summon/use, and never expire for an inside owner (including offline). Persist timer/residence; expiry keeps return history and never generates chunks only for surface cleanup.
+
+- Preview rendering never swaps the active client world or adds chunk tickets. Runtime model failures quarantine the affected block ID until restart/resource reload; fatal JVM errors must propagate. Active Iris shaders use the standard static surface. Cache reset must request fresh server snapshots, and tests must cover both Minecraft receiving-screen instances. Use `tools/check-portals.ps1` for isolated graphical regression; optional pinned Iris/Sodium fixtures stay in ignored build/.

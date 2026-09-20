@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.phys.shapes.*;
 
 /** Two-part doorway with a non-colliding, textured interior contact trigger. */
-public final class PortalBlock extends Block {
+public final class PortalBlock extends Block implements net.minecraft.world.level.block.EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     public PortalBlock(Properties properties) {
@@ -18,6 +18,7 @@ public final class PortalBlock extends Block {
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.SOUTH).setValue(HALF, DoubleBlockHalf.LOWER));
     }
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> b) { b.add(FACING, HALF); }
+    @Override public net.minecraft.world.level.block.entity.BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new PortalSurface(pos,state); }
 
     /** Canonical facing and half for placement and current-state reconciliation. */
     public static BlockState stateAt(Endpoint endpoint, BlockPos pos) {

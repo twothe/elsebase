@@ -9,6 +9,7 @@ public final class Settings {
     public static final ModConfigSpec.BooleanValue INSTANT, NATURAL_SPAWNS, DARKNESS;
     public static final ModConfigSpec.IntValue PERMANENT_LIMIT, MIRROR_LIMIT, EDIT_BUDGET, RADIUS, SPACING;
     public static final ModConfigSpec.ConfigValue<List<? extends String>> EXCLUDED;
+    public static final ModConfigSpec.EnumValue<dev.elsebase.preview.PreviewServer.Budget> PREVIEW_BUDGET;
     static {
         var b = new ModConfigSpec.Builder();
         b.push("portals");
@@ -30,6 +31,9 @@ public final class Settings {
         NATURAL_SPAWNS = b.comment("Allow natural mobs; spawners and machines retain normal rules.").define("allowNaturalMobSpawning", false);
         DARKNESS = b.comment("Disable uniform visual brightness in the Backdoor. No generated light sources in either mode. Player lighting and natural spawn rules remain normal. Server controls multiplayer brightness.")
                 .define("darkness", false);
+        b.pop().push("preview");
+        PREVIEW_BUDGET = b.comment("Read-only portal snapshot budget. Uses loaded chunks only; OFF retains portal travel. LOW/BALANCED/HIGH allow 8/16/32 viewers and at most 1/2/4 section copies per tick globally.")
+                .defineEnum("budget", dev.elsebase.preview.PreviewServer.Budget.BALANCED);
         b.pop();
         SPEC = b.build();
     }

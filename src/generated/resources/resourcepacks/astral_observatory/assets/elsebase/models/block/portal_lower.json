@@ -230,39 +230,6 @@
           "texture": "#rim"
         }
       }
-    },
-    {
-      "from": [
-        1,
-        0.5,
-        8
-      ],
-      "to": [
-        15,
-        16,
-        8
-      ],
-      "shade": false,
-      "faces": {
-        "north": {
-          "texture": "#surface",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "south": {
-          "texture": "#surface",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        }
-      }
     }
   ]
 }

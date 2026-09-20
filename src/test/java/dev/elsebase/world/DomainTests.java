@@ -6,6 +6,17 @@ import java.util.*;
 public final class DomainTests {
     private static void require(boolean condition, String message) { if (!condition) throw new AssertionError(message); }
     public static void main(String[] args) {
+        int[] attempts={0},reports={0};
+        var quarantine=new dev.elsebase.preview.ModelQuarantine<String>((key,error) -> reports[0]++);
+        require(quarantine.attempt("bad",() -> { attempts[0]++; throw new IllegalStateException("broken model"); })==null,"Faulty model is isolated");
+        require(quarantine.attempt("bad",() -> { attempts[0]++; return "unexpected"; })==null,"Quarantined model is not called again");
+        require(attempts[0]==1 && reports[0]==1,"Failure is reported only once");
+        require("ok".equals(quarantine.attempt("good",() -> "ok")),"Other models still render");
+        quarantine.clear(); require("repaired".equals(quarantine.attempt("bad",() -> "repaired")),"Reload can repair model");
+        boolean fatal=false;
+        try { quarantine.attempt("fatal",() -> { throw new IllegalStateException(new OutOfMemoryError("fixture")); }); }
+        catch(OutOfMemoryError expected) { fatal=true; }
+        require(fatal && !quarantine.contains("fatal"),"Wrapped fatal VM error is not swallowed");
         var allocator = new SlotAllocator(131072, 8192);
         require(allocator.capacity() == 795, "Expected exact disk capacity");
         Set<SlotAllocator.Slot> reserved = new HashSet<>();

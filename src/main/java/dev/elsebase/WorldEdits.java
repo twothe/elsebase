@@ -16,7 +16,8 @@ public final class WorldEdits {
         if (changes.size() > 256) throw new IllegalArgumentException("Atomic edit exceeds one panel");
         for (Change c : changes) {
             if (!c.level().getWorldBorder().isWithinBounds(c.pos()) || c.level().isOutsideBuildHeight(c.pos())
-                    || !c.level().getBlockState(c.pos()).equals(c.before()) || c.level().getBlockEntity(c.pos()) != null
+                    || !c.level().getBlockState(c.pos()).equals(c.before())
+                    || c.level().getBlockEntity(c.pos()) != null && !(c.before().is(Content.PORTAL.get()) && c.level().getBlockEntity(c.pos()) instanceof dev.elsebase.portal.PortalSurface)
                     || !c.level().mayInteract(player, c.pos()) || player.isSpectator()
                     || !player.mayBuild()) return false;
             if (!c.before().isAir()

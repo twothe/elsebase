@@ -15,6 +15,9 @@ import net.neoforged.neoforge.registries.*;
 public final class Content {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Elsebase.ID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Elsebase.ID);
+    private static final DeferredRegister<net.minecraft.world.level.block.entity.BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE,Elsebase.ID);
+    public static final DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>,net.minecraft.world.level.block.entity.BlockEntityType<dev.elsebase.portal.PortalSurface>> PORTAL_SURFACE =
+            BLOCK_ENTITIES.register("portal_surface",() -> net.minecraft.world.level.block.entity.BlockEntityType.Builder.of(dev.elsebase.portal.PortalSurface::new,Content.PORTAL.get()).build(null));
     private static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Elsebase.ID);
     private static final DeferredRegister<com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.chunk.ChunkGenerator>> GENERATORS =
             DeferredRegister.create(Registries.CHUNK_GENERATOR, Elsebase.ID);
@@ -55,6 +58,6 @@ public final class Content {
         };
         return block.get().defaultBlockState().setValue(StructuralBlock.STRUCTURAL, true);
     }
-    public static void register(IEventBus bus) { BLOCKS.register(bus); ITEMS.register(bus); TABS.register(bus); GENERATORS.register(bus); }
+    public static void register(IEventBus bus) { BLOCKS.register(bus); ITEMS.register(bus); TABS.register(bus); GENERATORS.register(bus); BLOCK_ENTITIES.register(bus); }
     private Content() {}
 }

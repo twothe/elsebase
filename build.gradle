@@ -31,8 +31,20 @@ neoForge {
     runs {
         client {
             client()
+            // Automated fixtures control the camera themselves and must not capture the desktop cursor.
+            if (['verifyClient', 'verifyPreview', 'verifyPortals'].any { project.hasProperty(it) }) {
+                programArguments.addAll '--mixin', 'elsebase-client-checks.mixins.json'
+            }
             if (project.hasProperty('verifyClient')) systemProperty 'elsebase.verifyClient', 'true'
             if (project.hasProperty('verifyPreview')) systemProperty 'elsebase.verifyPreview', 'true'
+            if (project.hasProperty('verifyPortals')) {
+                def profile = project.findProperty('portalProfile') ?: 'vanilla'
+                if (!(profile in ['vanilla', 'iris', 'iris-active'])) throw new GradleException('Unknown portalProfile')
+                gameDirectory = file("build/portal-client-${profile}")
+                systemProperty 'elsebase.verifyPortals', 'true'
+                systemProperty 'elsebase.portalGraphics', project.findProperty('portalGraphics') ?: 'fancy'
+                systemProperty 'elsebase.expectShaderFallback', profile == 'iris-active' ? 'true' : 'false'
+            }
         }
         server {
             server()

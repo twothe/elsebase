@@ -11,6 +11,8 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 @Mod(value = Elsebase.ID, dist = Dist.CLIENT)
 public final class ElsebaseClient {
     public ElsebaseClient(ModContainer container) {
+        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT,dev.elsebase.client.preview.PreviewSettings.SPEC);
+        dev.elsebase.client.preview.PreviewClient.install();
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 }

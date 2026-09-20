@@ -57,9 +57,9 @@ public final class TemplateScanner {
             var changed=new HashSet<>(draft.changed()); changed.add(Theme.role(panel.side()));
             var updated=new Draft(draft.base(),draft.theme().withFace(panel.side(),pattern),changed); updated.theme().bytes();
             drafts(player).put(player.getUUID(),updated); TemplateState.get(player.server).setDirty(); sync(player);
-            TemplateServer.message(player,"Scanned "+Theme.role(panel.side())+" into buffer. Shift-right-click to preview and save.");
+            TemplateServer.message(player,"elsebase.message.scan_complete");
         } catch(Pattern.Rejected error) { TemplateServer.message(player,error.getMessage()); }
-        catch(RuntimeException | LinkageError error) { dev.elsebase.preview.ModelQuarantine.rethrowFatal(error); Elsebase.LOGGER.error("Room scan failed without modifying sources for {}",player.getUUID(),error); TemplateServer.message(player,"Scan failed; previous buffer and source retained. Contact the administrator."); }
+        catch(RuntimeException | LinkageError error) { dev.elsebase.preview.ModelQuarantine.rethrowFatal(error); Elsebase.LOGGER.error("Room scan failed without modifying sources for {}",player.getUUID(),error); TemplateServer.message(player,"elsebase.message.scan_failed"); }
     }
     /** Uses the renderer's UV address to preserve asymmetric, multi-block designs on every wall orientation. */
     public static Pattern capture(ServerPlayer player,StructuralEditor.Panel panel,Pattern previous) {

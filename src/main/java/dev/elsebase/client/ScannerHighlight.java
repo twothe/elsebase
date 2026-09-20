@@ -24,7 +24,7 @@ public final class ScannerHighlight {
                 var box=new AABB(point).inflate(.004).move(-camera.x,-camera.y,-camera.z);
                 LevelRenderer.addChainedFilledBoxVertices(event.getPoseStack(),buffers.getBuffer(RenderType.debugFilledBox()),box.minX,box.minY,box.minZ,box.maxX,box.maxY,box.maxZ,valid?.1f:1,valid?.8f:.05f,.1f,valid?.08f:.35f);
                 LevelRenderer.renderLineBox(event.getPoseStack(),buffers.getBuffer(RenderType.lines()),box,valid?.1f:1,valid?.8f:.05f,.1f,.8f);
-                if(!valid && mc.hitResult instanceof BlockHitResult hit && point.equals(hit.getBlockPos())) mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(Materials.problem(state)==null?"Unsupported material model":Materials.problem(state)),true);
+                if(!valid && mc.hitResult instanceof BlockHitResult hit && point.equals(hit.getBlockPos())) mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(UiText.text(Materials.problem(state)==null?"elsebase.ui.preview_unavailable_unsupported_material_model":state.is(Materials.BLOCKED)?"elsebase.ui.blocked_material":"elsebase.ui.invalid_material")),true);
             }
             buffers.endBatch(RenderType.debugFilledBox()); buffers.endBatch(RenderType.lines());
         } catch(Pattern.Rejected invalid) { mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(invalid.getMessage()),true); }

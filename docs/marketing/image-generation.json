@@ -1,0 +1,18 @@
+{
+  "tool": "built-in image_gen",
+  "status": "draft promotional illustrations; not screenshots or replacement logo masters",
+  "assets": [
+    {
+      "file": "images/elsebase-hero.png",
+      "prompt": "Use case: ads-marketing. Create one polished wide 16:9 editorial hero illustration for the Minecraft Java mod Elsebase. This is clearly voxel promotional key art, not an in-game screenshot. Scene: a small copper-edged turquoise doorway, with opening exactly one block wide and two blocks high, standing in a quiet grassy voxel landscape; through it a warmly welcoming masonry workspace with wood accents, crafting table and stacked storage chests is visible. The doorway gives a glimpse of a much larger permanent base. Composition: doorway on right half, beautifully restrained teal-charcoal negative space on left with the large exact title 'Elsebase', then smaller exact tagline 'Your base, somewhere else.' Excellent bold readable typography, no other lettering. Brand visual language: teal, charcoal and small warm orange threshold accent, geometric offset room corners, welcoming curiosity, no horror. Block-built world, credible square voxel textures, no circles or giant fantasy portal, no characters, no machinery from other mods, no Minecraft or CurseForge logo, no fake UI, no buttons, no claims about performance or private dimensions. Keep it simple and art directed; landscape and room are illustrative player building ideas, not promised generated structures. Opaque background.",
+      "source": "C:/Users/Two/.codex/generated_images/01a0ba3c-ca0f-7300-970c-d0badc8aa93f/exec-6097a0e3-47f2-47aa-8a21-6f810073396d.png",
+      "review": "Title and tagline correct; illustration uses oversized decorative doorway surround and atmospheric lighting, not exact runtime geometry or shader behavior. Caption mandatory."
+    },
+    {
+      "file": "images/elsebase-room-ideas.png",
+      "prompt": "Use case: ads-marketing. Create a wide 16:9 companion illustration for the Minecraft mod Elsebase project page. Theme: 'Room for your next idea' as creative building inspiration, not an in-game screenshot or representation of automatically furnished presets. Editorial voxel diorama triptych, three equally sized square rooms as open-front isometric cutaways against deep charcoal teal background, consistent overhead camera. Left: cozy timber and stone crafting workshop with ordinary blocky workbench and storage chests. Center: contemplative dark stone and amethyst study with wooden bookshelves and enchanting desk. Right: pale stone organized storage room with copper details and rows of chests. Realistic Minecraft-like cuboid block proportions and pixel textures, richly composed but restrained, attractive large clean forms, no rounded furniture, no technology from third-party mods, no people. All three rooms have full flat square floors and simple straight walls; neutral isometric examples of player furnishing possibilities, no floating impossible architecture. Visual style: polished clearly illustrative voxel key art with soft studio lighting, teal and small orange accents matching a dimensional doorway brand. The ONLY text, across the top in large clean warm-white type, exactly 'Room for your next idea.' No logo, no UI, no numbered steps, no theme names, no feature badges, no watermarks. Generous margins. Opaque background.",
+      "source": "C:/Users/Two/.codex/generated_images/01a0ba3c-ca0f-7300-970c-d0badc8aa93f/exec-038880ea-fc9f-4afc-9f5a-cc1b0e7ae1cb.png",
+      "review": "Headline correct; three distinct room inspirations. Furniture, lighting and textures are illustrative, not provided presets. Caption mandatory."
+    }
+  ]
+}

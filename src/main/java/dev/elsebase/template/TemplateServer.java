@@ -108,7 +108,8 @@ public final class TemplateServer {
     }
     private static void catalog(ServerPlayer player,int page,boolean open,String filter,String search) {
         var mode=heldMode(player); var state=TemplateState.get(player.server);
-        var entries=new ArrayList<>(state.entries.values().stream().filter(e -> e.theme().name().toLowerCase(Locale.ROOT).contains(search.toLowerCase(Locale.ROOT)) && (!filter.equals("own") || e.owner().equals(player.getUUID().toString())) && (!filter.equals("builtin") || e.id().startsWith("builtin/"))).toList());
+        String[] terms=search.split("\u001f",-1);
+        var entries=new ArrayList<>(state.entries.values().stream().filter(e -> (e.theme().name().toLowerCase(Locale.ROOT).contains(terms[0].toLowerCase(Locale.ROOT)) || e.id().startsWith("builtin/") && Arrays.asList(terms).contains(e.id())) && (!filter.equals("own") || e.owner().equals(player.getUUID().toString())) && (!filter.equals("builtin") || e.id().startsWith("builtin/"))).toList());
         int pages=Math.max(1,(entries.size()+63)/64); page=Math.clamp(page,0,pages-1);
         var root=new JsonObject(); root.addProperty("page",page); root.addProperty("pages",pages); root.addProperty("mode",mode.name());
         root.addProperty("imports",Settings.TEMPLATE_IMPORTS.get() && guard!=null && guard.allowed(player.getUUID()));
@@ -123,8 +124,8 @@ public final class TemplateServer {
     public static void request(ServerPlayer player,TemplateProtocol.Request request) {
         int tick=player.server.getTickCount(); if(tick-LAST.getOrDefault(player.getUUID(),-100)<4) return; LAST.put(player.getUUID(),tick);
         if(request.operation().equals("import")) {
-            if(!Settings.TEMPLATE_IMPORTS.get() || guard==null || !guard.allowed(player.getUUID())) { message(player,"Imports are disabled or blocked; contact an administrator."); return; }
-            if(UPLOADS.size()>=64 || UPLOADS.stream().anyMatch(u -> u.player.equals(player.getUUID()))) { message(player,"An import is already pending; try again shortly."); return; }
+            if(!Settings.TEMPLATE_IMPORTS.get() || guard==null || !guard.allowed(player.getUUID())) { message(player,"elsebase.message.imports_are_disabled_or_blocked_contact_an_administrator"); return; }
+            if(UPLOADS.size()>=64 || UPLOADS.stream().anyMatch(u -> u.player.equals(player.getUUID()))) { message(player,"elsebase.message.an_import_is_already_pending_try_again_shortly"); return; }
             UPLOADS.add(new Upload(player.getUUID(),request));
         } else perform(player,request);
     }
@@ -134,7 +135,7 @@ public final class TemplateServer {
             switch(request.operation()) {
                 case "delete" -> {
                     if(mode!=ToolItem.Kind.PAINT) throw new Pattern.Rejected("Use the Paint Tool to delete your themes");
-                    delete(player,request.key()); message(player,"Theme deleted. Affected surfaces inherit their defaults."); open(player);
+                    delete(player,request.key()); message(player,"elsebase.message.theme_deleted_affected_surfaces_inherit_their_defaults"); open(player);
                 }
                 case "catalog" -> { String[] query=new String(request.data(),StandardCharsets.UTF_8).split("\n",2); if(request.data().length>512) throw new Pattern.Rejected("Search too long"); catalog(player,Integer.parseInt(request.key()),false,query.length>0?query[0]:"all",query.length>1?query[1]:""); }
                 case "get" -> { var entry=requireEntry(state,request.key()); send(player,"theme",entry.id(),entry.theme().bytes()); }
@@ -148,7 +149,7 @@ public final class TemplateServer {
                     checkOwnership(player,request.key());
                     var theme=guard.process(player.getUUID(),() -> { var candidate=Theme.parse(request.data()); candidate.validateMaterials(); return candidate; },
                             (incident,error) -> Elsebase.LOGGER.error("Theme import incident {} from UUID {}",incident,player.getUUID(),error));
-                    store(player,request.key(),theme); message(player,"Theme imported."); catalog(player,0,false,"own","");
+                    store(player,request.key(),theme); message(player,"elsebase.message.theme_imported"); catalog(player,0,false,"own","");
                 }
                 case "save_scan" -> {
                     requireScanner(mode); var draft=TemplateScanner.draft(player);
@@ -156,25 +157,25 @@ public final class TemplateServer {
                     var theme=draft.theme().named(new String(request.data(),StandardCharsets.UTF_8)); theme.validateMaterials();
                     String destination=!draft.base().isEmpty() && requireEntry(state,draft.base()).owner().equals(player.getUUID().toString())?draft.base():"";
                     String stored=store(player,destination,theme); TemplateScanner.saved(player,stored,theme);
-                    message(player,destination.isEmpty()?"Saved your own theme copy.":"Theme updated everywhere it is used."); catalog(player,0,false,"own","");
+                    message(player,destination.isEmpty()?"elsebase.message.saved_your_own_theme_copy":"elsebase.message.theme_updated_everywhere_it_is_used"); catalog(player,0,false,"own","");
                 }
                 case "select","discard_select" -> {
                     requireEntry(state,request.key());
                     if(mode==ToolItem.Kind.SCAN) TemplateScanner.select(player,request.key(),request.operation().equals("discard_select"));
                     else { state.choices.computeIfAbsent(player.getUUID(),id -> new EnumMap<>(ToolItem.Kind.class)).put(mode,request.key()); state.setDirty(); }
-                    message(player,"Selected: "+state.entries.get(request.key()).theme().name()); send(player,"selected",request.key(),new byte[0]);
+                    message(player,"elsebase.message.theme_selected"); send(player,"selected",request.key(),new byte[0]);
                 }
                 case "default" -> {
                     if(mode!=ToolItem.Kind.PAINT) throw new Pattern.Rejected("Use the Paint Tool to set your default theme");
                     if(!Settings.PERSONAL_TEMPLATES.get()) throw new Pattern.Rejected("Personal defaults disabled by server");
                     requireEntry(state,request.key()); WorldState.get(player.server).home(player.server,player.getUUID());
-                    state.defaults.put(player.getUUID(),request.key()); state.changed(); message(player,"Default theme updated for your region.");
+                    state.defaults.put(player.getUUID(),request.key()); state.changed(); message(player,"elsebase.message.default_theme_updated_for_your_region");
                 }
                 default -> throw new Pattern.Rejected("Unknown template operation");
             }
         } catch(Pattern.Rejected e) { message(player,e.getMessage()); }
-        catch(NumberFormatException e) { message(player,"Invalid page number."); }
-        catch(IOException e) { Elsebase.LOGGER.error("Theme storage failed; existing data retained",e); message(player,"Theme storage failed; contact the administrator. No player penalty."); }
+        catch(NumberFormatException e) { message(player,"elsebase.message.invalid_page_number"); }
+        catch(IOException e) { Elsebase.LOGGER.error("Theme storage failed; existing data retained",e); message(player,"elsebase.message.theme_storage_failed_contact_the_administrator_no_player_penalty"); }
     }
     /** Delete only owned definitions; file failure leaves all live bindings intact. Private drafts become unpublished copies. */
     public static void delete(ServerPlayer player,String id) throws IOException {
@@ -214,7 +215,7 @@ public final class TemplateServer {
             var panel=PanelSelection.select(player.level(),player.position(),player.getEyePosition(),player.getLookAngle(),false);
             if(panel==null || !WorldEdits.authorizeAppearance(player,panel.positions(true))) throw new Pattern.Rejected("Surface is protected or out of reach");
             requireEntry(TemplateState.get(player.server),id);
-            TemplateState.get(player.server).bind(panel,id); message(player,"Surface painted.");
+            TemplateState.get(player.server).bind(panel,id); message(player,"elsebase.message.surface_painted");
         } catch(Pattern.Rejected failure) { message(player,failure.getMessage()); }
     }
     public static void restored(ServerPlayer player,StructuralEditor.Panel panel) {
@@ -233,9 +234,7 @@ public final class TemplateServer {
             for(var path:paths.filter(p -> p.getFileName().toString().endsWith(".json")).sorted().limit(4097).toList()) {
                 try {
                     if(loaded.size()>=4096 || Files.isSymbolicLink(path) || !Files.isRegularFile(path) || Files.size(path)>Pattern.MAX_BYTES) throw new Pattern.Rejected("Library limit or unsafe file");
-                    String stem=path.getFileName().toString().replaceFirst("\\.json$",""); String id,owner="";
-                    if(stem.matches("player_[0-9a-f-]{36}_[0-9a-f-]{36}")) { owner=stem.substring(7,43); id="player/"+owner+"/"+stem.substring(44); }
-                    else { if(!stem.matches("[a-z0-9_-]{1,80}")) throw new Pattern.Rejected("Use simple ASCII library filenames"); id="pack/"+stem; }
+                    String id=TemplateFiles.id(path), owner=id.startsWith("player/")?id.split("/")[1]:"";
                     var theme=Theme.readFile(path); theme.validateMaterials(); loaded.put(id,new TemplateState.Entry(id,owner,theme));
                 } catch(IOException | RuntimeException e) { Elsebase.LOGGER.warn("Template library file rejected: {} ({})",path.getFileName(),e.getMessage()); }
             }

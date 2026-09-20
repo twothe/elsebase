@@ -140,95 +140,8 @@ for (const [name,elements] of Object.entries(toolParts))
 
         display:{gui:{rotation:[15,-25,0],translation:[0,0,0],scale:[1,1,1]},firstperson_righthand:{rotation:[0,-90,25],translation:[1,3,1],scale:[0.6,0.6,0.6]},thirdperson_righthand:{rotation:[0,0,0],translation:[0,2,0],scale:[0.6,0.6,0.6]},ground:{translation:[0,3,0],scale:[0.4,0.4,0.4]}}});
 
-const english={
-
-    'elsebase.portal.loading':'Crossing the thresholdâ€¦',
-    'key.categories.elsebase':'Elsebase','key.elsebase.portal':'Summon / recall instant portal',
-
-    'item.elsebase.anchor_tool':'Spawn Anchor Tool','item.elsebase.portal_tool':'Portal Generator','item.elsebase.removal_tool':'Removal Tool','item.elsebase.creation_tool':'Creation Tool','item.elsebase.threshold_core':'Threshold Core',
-
-    'block.elsebase.floor':'Workspace Floor','block.elsebase.border':'Cell Border','block.elsebase.wall':'Partition','block.elsebase.ceiling':'Ceiling Panel',
-
-    'block.elsebase.light':'Decorative Light Panel','block.elsebase.portal':'Elsebase Threshold','block.elsebase.anchor':'Spawn Marker'
-
-};
-
-Object.assign(english, {
-    'elsebase.configuration.title':'Elsebase settings',
-    'elsebase.configuration.portals':'Portals', 'elsebase.configuration.chunkloading':'Chunk loading',
-    'elsebase.configuration.structure':'Structural tools', 'elsebase.configuration.allocation':'Personal area allocation',
-    'elsebase.configuration.world':'Dimension',
-    'elsebase.configuration.preview':'Portal previews', 'elsebase.configuration.budget':'Shared preview budget',
-    'elsebase.configuration.render':'Rendering', 'elsebase.configuration.previewQuality':'Portal preview quality',
-    'elsebase.configuration.immersivePortalTransition':'Immersive portal transition',
-    'elsebase.configuration.allowInstant':'Allow instant portals',
-    'elsebase.configuration.maxPermanentPairsPerPlayer':'Permanent portal pairs per player',
-    'elsebase.configuration.excludedExternalDimensions':'Blocked entrance dimensions',
-    'elsebase.configuration.maxMirroredEndpointChunks':'Maximum mirrored portal chunks',
-    'elsebase.configuration.maxChangedBlocksPerTick':'Structural edit budget per tick',
-    'elsebase.configuration.radius':'Initial allocation radius',
-    'elsebase.configuration.minimumSpacing':'Minimum player spacing',
-    'elsebase.configuration.allowNaturalMobSpawning':'Allow natural mob spawning',
-    'elsebase.configuration.darkness':'Dark dimension (disable uniform brightness)',
-
-
-    'tooltip.elsebase.anchor':'Right-click a floor to move your personal spawn marker.',
-
-    'tooltip.elsebase.portal':'Link inside, then outside. Sneak-use a portal to remove it.',
-
-    'tooltip.elsebase.remove':'Right-click to remove the highlighted surface; floor borders remain.',
-    'tooltip.elsebase.aim':'Look at a wall, floor or ceiling. No mode switching.',
-
-    'tooltip.elsebase.create':'Right-click to build solid walls or restore floors and ceilings.',
-
-
-
-
-});
-
-write('assets/elsebase/lang/en_us.json',english);
-
-write('assets/elsebase/lang/de_de.json',{...english,
-    'elsebase.configuration.title':'Elsebase-Einstellungen',
-    'elsebase.configuration.portals':'Portale', 'elsebase.configuration.chunkloading':'Chunkloading',
-    'elsebase.configuration.structure':'Strukturwerkzeuge', 'elsebase.configuration.allocation':'Persönliche Startbereiche',
-    'elsebase.configuration.world':'Dimension',
-    'elsebase.configuration.preview':'Portalvorschau', 'elsebase.configuration.budget':'Gemeinsames Vorschau-Budget',
-    'elsebase.configuration.render':'Darstellung', 'elsebase.configuration.previewQuality':'Qualität der Portalvorschau',
-    'elsebase.configuration.immersivePortalTransition':'Immersiver Portalübergang',
-    'elsebase.configuration.allowInstant':'Instant-Portale erlauben',
-    'elsebase.configuration.maxPermanentPairsPerPlayer':'Permanente Portalpaare pro Spieler',
-    'elsebase.configuration.excludedExternalDimensions':'Dimensionen ohne neue Eingänge',
-    'elsebase.configuration.maxMirroredEndpointChunks':'Maximale Anzahl vorgeladener Portalchunks',
-    'elsebase.configuration.maxChangedBlocksPerTick':'Blockänderungen pro Tick',
-    'elsebase.configuration.radius':'Radius für Startbereiche',
-    'elsebase.configuration.minimumSpacing':'Mindestabstand zwischen Spielern',
-    'elsebase.configuration.allowNaturalMobSpawning':'Natürliches Mob-Spawning erlauben',
-    'elsebase.configuration.darkness':'Dunkle Dimension (pauschale Helligkeit aus)',
-
-
-    'tooltip.elsebase.anchor':'Rechtsklick auf einen Boden: persönlichen Spawn-Anker versetzen.',
-
-    'tooltip.elsebase.portal':'Innen, dann außen verknüpfen. Portal mit Shift-Rechtsklick entfernen.',
-
-    'tooltip.elsebase.remove':'Rechtsklick: Markierte Fläche entfernen; Bodenränder bleiben erhalten.',
-    'tooltip.elsebase.aim':'Wand, Boden oder Decke ansehen. Kein Moduswechsel nötig.',
-
-    'tooltip.elsebase.create':'Rechtsklick: geschlossene Wände bauen oder Böden und Decken herstellen.',
-
-
-
-
-    'elsebase.portal.loading':'Durchgang wird vorbereitetâ€¦',
-    'key.elsebase.portal':'Instant-Portal rufen / versetzen',
-
-    'item.elsebase.anchor_tool':'Spawn-Ankerwerkzeug','item.elsebase.portal_tool':'Portalgenerator','item.elsebase.removal_tool':'Löschwerkzeug','item.elsebase.creation_tool':'Herstellwerkzeug','item.elsebase.threshold_core':'Portalkern',
-
-    'block.elsebase.floor':'Werkraumboden','block.elsebase.border':'Zellgrenze','block.elsebase.wall':'Trennwand','block.elsebase.ceiling':'Deckenpaneel',
-
-    'block.elsebase.light':'Dekoratives Lichtpaneel','block.elsebase.portal':'Elsebase-Portal','block.elsebase.anchor':'Spawn-Indikator'
-
-});
+// Language catalogs are authored separately and checked for exact key parity.
+await import('./generate-localizations.mjs');
 
 write('data/elsebase/dimension/backdoor.json',{type:'elsebase:backdoor',generator:{type:'elsebase:rooms',biome:'elsebase:backdoor'}});
 
@@ -333,16 +246,6 @@ console.log('Generated Elsebase fallback resources, recipes and GameTest fixture
 write('data/elsebase/tags/block/template_material_blacklist.json',{replace:false,values:[]});
 write('assets/elsebase/models/item/scanner.json',{parent:'minecraft:item/handheld',textures:{layer0:'elsebase:item/scanner'}});
 write('data/elsebase/recipe/scanner.json',{type:'minecraft:crafting_shaped',pattern:[' GI',' S ',' S '],key:{G:{item:'minecraft:glass'},I:{item:'minecraft:iron_ingot'},S:{item:'minecraft:stick'}},result:{id:'elsebase:scanner',count:1}});
-for(const locale of ['en_us','de_de']) {
- const file=`assets/elsebase/lang/${locale}.json`; const lang=JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
- lang['item.elsebase.scanner']=locale==='de_de'?'Vorlagen-Scanner':'Template Scanner';
- lang['tooltip.elsebase.scan']=locale==='de_de'?'Shift-Rechtsklick: Theme wählen und speichern. Rechtsklick: angeschaute Raumfläche in den Puffer scannen.':'Shift-right-click: choose and save a theme. Right-click: scan the aimed room surface into the buffer.';
- lang['item.elsebase.paint_tool']=locale==='de_de'?'Malwerkzeug':'Paint Tool';
- lang['tooltip.elsebase.paint']=locale==='de_de'?'Rechtsklick: Raumfläche umfärben. Shift-Rechtsklick: Theme wählen oder als Standard setzen.':'Right-click: repaint a room surface. Shift-right-click: choose a theme or set your default.';
- lang['tooltip.elsebase.create']+=(locale==='de_de'?' Shift-Rechtsklick: Bau-Theme wählen.':' Shift-right-click: select construction theme.');
- write(file,lang);
-}
-
 write('assets/elsebase/models/item/paint_tool.json',{parent:'minecraft:item/handheld',textures:{layer0:'elsebase:item/paint_tool'}});
 write('data/elsebase/recipe/paint_tool.json',{type:'minecraft:crafting_shaped',pattern:[' WW',' SC',' S '],key:{W:{item:'minecraft:white_wool'},C:{item:'minecraft:copper_ingot'},S:{item:'minecraft:stick'}},result:{id:'elsebase:paint_tool',count:1}});
 

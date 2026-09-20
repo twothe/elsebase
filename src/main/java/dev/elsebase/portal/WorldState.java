@@ -114,7 +114,7 @@ public final class WorldState extends SavedData {
     }
     public static WorldState load(CompoundTag tag, HolderLookup.Provider registries) {
         int version = tag.getInt("version");
-        if (version != 4) throw new IllegalStateException("Unsupported Elsebase save version; create a new test world for this development build");
+        if (version != 4) throw new IllegalStateException("Unsupported Elsebase save version; restore a compatible backup or use the matching mod version");
         SavedFields.require(tag,"radius",Tag.TAG_INT); SavedFields.require(tag,"spacing",Tag.TAG_INT);
         var data = new WorldState(); data.radius = tag.getInt("radius"); data.spacing = tag.getInt("spacing");
         for (Tag value : SavedFields.rows(tag,"homes")) {

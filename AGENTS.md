@@ -3,8 +3,10 @@
 ## Behaviour
 
 - Tool usability, stacked rooms and anchor loading/safety are authorized and implemented; see `docs/stacked-rooms-and-anchors.md`.
-- Current phase: shared surface templates, explicitly authorized by the user on 2026-09-20. Follow confirmed discussion decisions and `docs/surface-templates.md` over conflicting original proposals.
+- Current phase: 1.0.0 release, explicitly authorized on 2026-09-21; the user publishes the artifact on CurseForge. Follow confirmed discussion decisions and `docs/surface-templates.md` over conflicting original proposals.
 - Communicate in German. Code, identifiers and technical documentation use English, following the original specification.
+- Keep version 1.0.0 until the owner publishes it; the owner confirmed the release has not been uploaded yet.
+- Keep all eight catalogs in `tools/lang/` synchronized for interface changes; generate with `node tools/generate-localizations.mjs`. Never fill untranslated keys with English. Run `verifyLocalizations` and the silent/free-cursor `tools/check-config.ps1` after configuration UI changes. Preserve theme IDs and user-authored names; translate built-in display names by ID.
 - Preserve `docs/backroom-industry-design.md` as the original input. Record open questions and agreed changes separately until the design is approved.
 - Target Minecraft 1.21.1, NeoForge and Java 21. Use the checked-in Gradle wrapper and pinned versions.
 - Keep common/server code independent of client classes. Portal traversal must remain independent of optional previews.
@@ -22,13 +24,17 @@
 - Run `build` (includes domain tests) and `runGameTestServer` after gameplay changes. GameTests use isolated `build/gametest-themes-v2`; their flat-preset fixture is test-only. Vanilla's mock-server-player helper always reports creative; use a real server player fixture when testing survival costs.
 - Automated graphical tests must leave the desktop cursor free and stay silent from startup. Test-only mixins provide runtime overrides without changing normal controls or saved audio settings.
 - Preserve allocator reservations on load failures. Vanilla SavedData loading swallows exceptions; never silently replace a corrupt existing registry. Validate index mutations before touching the live map.
-- Until release 1.0, backward compatibility with earlier development builds is not required. Prefer a new test world over migration code or compatibility layers. Reject unsupported save formats clearly; do not silently reset or delete worlds. Persistence within a supported build remains required.
+- Release 1.0.0 establishes world save format 4 and template format 2 as the supported baseline. Preserve released-world compatibility in subsequent updates; format changes require an explicit migration or upgrade policy. Earlier incompatible development formats have no migration. Never silently reset or delete saved worlds.
 
 ## Project Overview
 
 Elsebase implements a permanent workspace dimension with chunk-aligned rooms, reversible structural editing, persistent personal references and static cross-dimensional doorways. Namespace/package: `elsebase` / `dev.elsebase`. Seven complete block-pattern themes support technology and magic packs. Bounded block previews and portal-only transition images are implemented; final bespoke artwork/audio and general entity/machine previews remain follow-up work.
 
 ## Documentation Index
+
+- [Release notes](CHANGELOG.md) and [CurseForge description](docs/curseforge-description.md): upload-ready 1.0.0 information.
+- [Project-page assets](docs/marketing/README.md): English/German page drafts, illustrative banners, actual game previews, captions and image provenance. Promotional illustrations are not screenshots or generated room presets.
+- [Localization](docs/localization.md): language catalogs, future translation maintenance, native configuration theme picker and actual-client checks.
 
 - [Pre-1.0 audit](docs/release-readiness.md): resolved defects, release packaging checks, repeatable verification and remaining publication/integration decisions.
 

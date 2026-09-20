@@ -1,6 +1,12 @@
 # Development and verification
 
-Current pre-1.0 audit and repeatable artifact checks: [release readiness](release-readiness.md). `build` now verifies the packaged JAR, excluding development fixtures and checking generated language encoding.
+Release 1.0.0 verification: `build` (including domain tests and release-JAR checks), all 25 GameTests, and two packaged-JAR dedicated-server launches with save/reload and clean shutdown passed. The release retains world format 4 and theme format 2. Graphical vanilla/Iris results from the preceding audit remain applicable; they were not rerun for the version promotion.
+
+Pre-release audit and repeatable artifact checks: [release readiness](release-readiness.md). `build` now verifies the packaged JAR, excluding development fixtures and checking generated language encoding.
+
+## Localization verification
+
+`build` checks all eight authored/generated language catalogs for matching keys and placeholders, missing configuration text and encoding regressions. See [localization maintenance](localization.md). `tools/check-config.ps1` passed in the real client with German/Chinese resources, local library selection, search, cancellation, undo/reset and saved TOML verification. The vanilla template fixture also passed after menu localization. Both fixtures were silent and kept the cursor free. JourneyMap itself and native-speaker review of all translations are outside this check. Version remains 1.0.0 because it has not been published yet.
 
 ## Template verification
 

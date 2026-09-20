@@ -13,7 +13,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /** Fair bounded polling of already-loaded destination sections. Previews never load/tick extra chunks. */
 public final class PreviewServer {
-    public enum Budget { OFF, LOW, BALANCED, HIGH }
+    public enum Budget implements net.neoforged.neoforge.common.TranslatableEnum {
+        OFF, LOW, BALANCED, HIGH;
+        @Override public net.minecraft.network.chat.Component getTranslatedName() { return net.minecraft.network.chat.Component.translatable("elsebase.quality." + name().toLowerCase(java.util.Locale.ROOT)); }
+    }
     private record Preference(int quality, int expires) {}
     private static final Map<UUID,Preference> PREFERENCES = new HashMap<>();
     private static final Map<UUID,Subscription> ACTIVE = new LinkedHashMap<>();

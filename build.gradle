@@ -38,7 +38,10 @@ neoForge {
             if (['verifyClient', 'verifyPreview', 'verifyPortals', 'verifyTemplates'].any { project.hasProperty(it) }) {
                 programArguments.addAll '--mixin', 'elsebase-client-checks.mixins.json'
             }
-            if (project.hasProperty('verifyClient')) systemProperty 'elsebase.verifyClient', 'true'
+            if (project.hasProperty('verifyClient')) {
+                gameDirectory = file('build/config-client')
+                systemProperty 'elsebase.verifyClient', 'true'
+            }
             if (project.hasProperty('verifyPreview')) systemProperty 'elsebase.verifyPreview', 'true'
             if (project.hasProperty('verifyTemplates')) {
                 def profile = project.findProperty('templateProfile') ?: 'vanilla'
@@ -166,3 +169,44 @@ tasks.register('verifyReleaseJar') {
     }
 }
 tasks.named('check') { dependsOn 'verifyReleaseJar' }
+
+// Every shipped locale must stay complete and match its authored source, including format arguments.
+tasks.register('verifyLocalizations') {
+    def source = file('tools/lang')
+    def output = file('src/generated/resources/assets/elsebase/lang')
+    def javaSources = fileTree('src/main/java').matching { include '**/*.java'; exclude '**/*Checks.java', '**/*Tests.java' }
+    inputs.dir('tools/lang')
+    inputs.dir('src/generated/resources/assets/elsebase/lang')
+    inputs.dir('src/main/java')
+    doLast {
+        def locales = ['en_us', 'de_de', 'fr_fr', 'es_es', 'pt_br', 'ru_ru', 'zh_cn', 'ja_jp']
+        def parser = new groovy.json.JsonSlurper()
+        def english = parser.parse(new File(source, 'en_us.json'), 'UTF-8')
+        def placeholders = { String value -> (value =~ /%(?:[0-9]+\$)?[sd]/).collect { it }.sort() }
+        locales.each { locale ->
+            def catalog = parser.parse(new File(source, "${locale}.json"), 'UTF-8')
+            if (catalog.keySet() != english.keySet()) throw new GradleException("Missing or extra translation keys: ${locale}")
+            catalog.each { key, value ->
+                if (!(value instanceof String) || value.isBlank() || placeholders(value) != placeholders(english[key]))
+                    throw new GradleException("Invalid translated text/arguments: ${locale}:${key}")
+                if (value.contains('\uFFFD') || value.contains('â€') || value.contains('Ã¶'))
+                    throw new GradleException("Broken text encoding: ${locale}:${key}")
+            }
+            if (parser.parse(new File(output, "${locale}.json"), 'UTF-8') != catalog)
+                throw new GradleException("Stale generated translations: run node tools/generate-localizations.mjs (${locale})")
+        }
+        javaSources.each { javaFile ->
+            if (javaFile.name in ['Settings.java', 'PreviewSettings.java']) {
+                (javaFile.getText('UTF-8') =~ /\.define(?:InRange|Enum|ListAllowEmpty)?\("([A-Za-z0-9_]+)"/).each { match ->
+                    def key = "elsebase.configuration.${match[1]}".toString()
+                    if (!english.containsKey(key) || !english.containsKey(key + '.tooltip'))
+                        throw new GradleException("Missing configuration label/help: ${key}")
+                }
+            }
+            (javaFile.getText('UTF-8') =~ /"((?:elsebase\.(?:ui|message|config|configuration|theme|quality)\.|biome\.elsebase\.|tooltip\.elsebase\.)[A-Za-z0-9_.]+)"/).each { match ->
+                if (!match[1].endsWith('.') && !english.containsKey(match[1])) throw new GradleException("Missing source translation ${match[1]} in ${javaFile.name}")
+            }
+        }
+    }
+}
+tasks.named('check') { dependsOn 'verifyLocalizations' }

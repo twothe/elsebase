@@ -75,10 +75,10 @@ public final class ReturnTravel {
             if (landing==null) landing = refuge(player,destination,origin);
             if (landing==null) {
                 Elsebase.LOGGER.error("No safe return or empty refuge near world spawn for {}",player.getUUID());
-                Portals.message(player,"World spawn has no safe space. An operator must clear a safe landing there.");
+                Portals.message(player,"elsebase.message.world_spawn_has_no_safe_space_an_operator_must_clear_a_safe_landing_there");
                 return;
             }
-            Portals.message(player,"Outside destination unavailable; returned to a safe place near world spawn.");
+            Portals.message(player,"elsebase.message.outside_destination_unavailable_returned_to_a_safe_place_near_world_spawn");
         }
         player.stopRiding();
         float yaw=player.getYRot();

@@ -61,10 +61,10 @@ public final class TemplateClient {
             case "theme" -> { THEMES.put(packet.key(),Theme.parse(packet.data())); }
             case "scan_clear" -> { draft=null; draftBase=""; changes=""; }
             case "scan_draft" -> { String previous=draftBase; draft=Theme.parse(packet.data()); draftBase=packet.key(); if(mc.screen instanceof TemplateScreen screen) screen.bufferReplaced(previous,draftBase); }
-            case "scan_changes" -> { changes=new String(packet.data(),StandardCharsets.UTF_8); if(mc.screen instanceof TemplateScreen screen) screen.refresh(); }
+            case "scan_changes" -> { changes=Arrays.stream(new String(packet.data(),StandardCharsets.UTF_8).split(", ")).map(role -> Set.of("wall","floor","ceiling").contains(role)?UiText.text("elsebase.ui."+role):role).collect(java.util.stream.Collectors.joining(", ")); if(mc.screen instanceof TemplateScreen screen) screen.refresh(); }
             case "selected" -> { if(mc.screen instanceof TemplateScreen) mc.setScreen(null); }
             case "export" -> { var theme=Theme.parse(packet.data()); mc.setScreen(new TemplateSaveScreen(mc.screen,theme)); }
-            case "message" -> { message=new String(packet.data(),StandardCharsets.UTF_8); if(mc.player!=null) mc.player.displayClientMessage(Component.literal(message),false); }
+            case "message" -> { message=new String(packet.data(),StandardCharsets.UTF_8); if(message.startsWith("elsebase.message.")) message=UiText.text(message); if(mc.player!=null) mc.player.displayClientMessage(Component.literal(message),false); }
             default -> throw new IllegalArgumentException("Unknown template reply");
         }
     }

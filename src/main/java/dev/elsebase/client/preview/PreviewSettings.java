@@ -4,7 +4,10 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 /** Small client presentation presets, independent of server travel and snapshot budgets. */
 public final class PreviewSettings {
-    public enum Quality { OFF, LOW, BALANCED, HIGH }
+    public enum Quality implements net.neoforged.neoforge.common.TranslatableEnum {
+        OFF, LOW, BALANCED, HIGH;
+        @Override public net.minecraft.network.chat.Component getTranslatedName() { return net.minecraft.network.chat.Component.translatable("elsebase.quality." + name().toLowerCase(java.util.Locale.ROOT)); }
+    }
     public static final ModConfigSpec SPEC;
     public static final ModConfigSpec.EnumValue<Quality> QUALITY;
     public static final ModConfigSpec.BooleanValue TRANSITION;

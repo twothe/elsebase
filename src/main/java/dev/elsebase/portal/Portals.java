@@ -22,13 +22,13 @@ public final class Portals {
 
     public static void clear() { COOLDOWNS.clear(); REQUESTS.clear(); PENDING.clear(); LINKING.clear(); arrivalTick = -1; arrivals = 0; }
     public static void logout(UUID id) { PENDING.remove(id); REQUESTS.remove(id); COOLDOWNS.remove(id); LINKING.remove(id); }
-    public static void message(ServerPlayer player, String text) { player.displayClientMessage(Component.literal(text), true); }
+    public static void message(ServerPlayer player, String text) { player.displayClientMessage(text.startsWith("elsebase.message.") ? Component.translatable(text) : Component.literal(text), true); }
 
     public static void request(ServerPlayer player) {
         long now = player.serverLevel().getGameTime();
         if (now - REQUESTS.getOrDefault(player.getUUID(), now - 10) < 10) return;
         REQUESTS.put(player.getUUID(), now);
-        if (PENDING.size() >= 100 && !PENDING.containsKey(player.getUUID())) { message(player, "Elsebase: server busy; try again."); return; }
+        if (PENDING.size() >= 100 && !PENDING.containsKey(player.getUUID())) { message(player, "elsebase.message.elsebase_server_busy_try_again"); return; }
         PENDING.put(player.getUUID(), player);
     }
     /** One potentially generating summon per tick; requests from the same player coalesce. */
@@ -51,21 +51,21 @@ public final class Portals {
         if (inside && (old == null || player.isSpectator() || !player.mayBuild())) { escape(player,old); return; }
         if (player.isSpectator() || !player.mayBuild()) return;
         if (!inside && (!Settings.INSTANT.get() || excluded(player.serverLevel()))) {
-            message(player, "New instant entrances are disabled here."); return;
+            message(player, "elsebase.message.new_instant_entrances_are_disabled_here"); return;
         }
         Endpoint near = nearby(player, old);
         if (near == null) {
             if (inside) escape(player,old);
-            else message(player, "No free 1x2 doorway nearby.");
+            else message(player, "elsebase.message.no_free_1x2_doorway_nearby");
             return;
         }
-        if (!inside && !Anchors.ensure(player)) { message(player, "Reference floor or marker is obstructed or protected."); return; }
+        if (!inside && !Anchors.ensure(player)) { message(player, "elsebase.message.reference_floor_or_marker_is_obstructed_or_protected"); return; }
         Endpoint inner = inside ? near : state.home(player.server, player.getUUID()).reference();
         Endpoint external = inside ? old.external() : near;
         PortalPair next = new PortalPair(old == null ? UUID.randomUUID() : old.id(), player.getUUID(), false, inner, external);
         if (!replaceInstant(player,old,next,inside)) {
             if (inside) escape(player,old);
-            else message(player,"New entrance is protected or blocked. Clear a doorway nearby and try again.");
+            else message(player,"elsebase.message.new_entrance_is_protected_or_blocked_clear_a_doorway_nearby_and_try_again");
         }
     }
     private static void escape(ServerPlayer player, PortalPair pair) {
@@ -192,16 +192,16 @@ public final class Portals {
     }
 
     public static void anchor(ServerPlayer player, BlockPos marker) {
-        if (!player.level().dimension().equals(Elsebase.DIMENSION)) { message(player, "Anchors belong in the Backdoor."); return; }
+        if (!player.level().dimension().equals(Elsebase.DIMENSION)) { message(player, "elsebase.message.anchors_belong_in_the_backdoor"); return; }
         var level = player.serverLevel();
         if (!level.getBlockState(marker).isAir() || !level.getBlockState(marker.below()).isFaceSturdy(level, marker.below(), Direction.UP)) {
-            message(player, "Place the anchor on a clear solid floor."); return;
+            message(player, "elsebase.message.place_the_anchor_on_a_clear_solid_floor"); return;
         }
         // The marker sits at the arrival side of the reference doorway.
         Direction facing = player.getDirection().getOpposite();
         Endpoint ref = new Endpoint(Elsebase.DIMENSION, marker.relative(facing.getOpposite()), facing);
         var data = WorldState.get(player.server);
-        if (!canFit(player, ref, data.instant(player.getUUID()))) { message(player, "The anchor needs a clear doorway beside it."); return; }
+        if (!canFit(player, ref, data.instant(player.getUUID()))) { message(player, "elsebase.message.the_anchor_needs_a_clear_doorway_beside_it"); return; }
         var home = data.home(player.server, player.getUUID());
         List<WorldEdits.Change> changes = new ArrayList<>();
         if (home.anchor() != null && !home.anchor().equals(marker)) {
@@ -210,40 +210,40 @@ public final class Portals {
                 changes.add(new WorldEdits.Change(level, home.anchor(), level.getBlockState(home.anchor()), Blocks.AIR.defaultBlockState()));
         }
         changes.add(new WorldEdits.Change(level, marker, level.getBlockState(marker), Content.ANCHOR.get().defaultBlockState()));
-        if (!WorldEdits.apply(player, changes)) { message(player, "Anchor placement denied; previous anchor retained."); return; }
+        if (!WorldEdits.apply(player, changes)) { message(player, "elsebase.message.anchor_placement_denied_previous_anchor_retained"); return; }
         data.homes.put(player.getUUID(), new WorldState.Home(home.slot(), ref, marker)); data.setDirty();
         Anchors.track(player);
-        message(player, "Reference updated. The existing return portal stays where it is.");
+        message(player, "elsebase.message.reference_updated_the_existing_return_portal_stays_where_it_is");
     }
 
     public static void tool(ServerPlayer player, BlockPos clicked, BlockPos place) {
         var data = WorldState.get(player.server);
         PortalPair pair = data.at(player.level().dimension(), clicked);
         if (pair != null) {
-            if (!player.isShiftKeyDown()) { message(player, "Sneak-use the tool to remove this pair."); return; }
-            if (!pair.owner().equals(player.getUUID()) && !player.hasPermissions(2)) { message(player, "Only the owner or an operator can remove this pair."); return; }
+            if (!player.isShiftKeyDown()) { message(player, "elsebase.message.sneak_use_the_tool_to_remove_this_pair"); return; }
+            if (!pair.owner().equals(player.getUUID()) && !player.hasPermissions(2)) { message(player, "elsebase.message.only_the_owner_or_an_operator_can_remove_this_pair"); return; }
             if (replace(player, pair, null) && pair.permanent()) player.getInventory().placeItemBackInInventory(new ItemStack(Content.CORE.get()));
             return;
         }
         Endpoint endpoint = new Endpoint(player.level().dimension(), place, player.getDirection().getOpposite());
-        if (!canFit(player, endpoint, null)) { message(player, "A free 1x2 doorway is required."); return; }
+        if (!canFit(player, endpoint, null)) { message(player, "elsebase.message.a_free_1x2_doorway_is_required"); return; }
         if (endpoint.inner()) {
             LINKING.put(player.getUUID(), endpoint);
-            message(player, "Inner endpoint selected. Use this tool outside to spend one Threshold Core and complete the pair."); return;
+            message(player, "elsebase.message.inner_endpoint_selected_use_this_tool_outside_to_spend_one_threshold_core_and_complete_the_pair"); return;
         }
         Endpoint inner = LINKING.get(player.getUUID());
-        if (inner == null) { message(player, "Select the inner endpoint in the Backdoor first."); return; }
-        if (excluded(player.serverLevel())) { message(player, "New entrances are disabled in this dimension."); return; }
+        if (inner == null) { message(player, "elsebase.message.select_the_inner_endpoint_in_the_backdoor_first"); return; }
+        if (excluded(player.serverLevel())) { message(player, "elsebase.message.new_entrances_are_disabled_in_this_dimension"); return; }
         long count = data.pairs.values().stream().filter(p -> p.permanent() && p.owner().equals(player.getUUID())).count();
-        if (count >= Settings.PERMANENT_LIMIT.get()) { message(player, "Permanent portal limit reached."); return; }
+        if (count >= Settings.PERMANENT_LIMIT.get()) { message(player, "elsebase.message.permanent_portal_limit_reached"); return; }
         int coreSlot = -1;
         for (int i = 0; i < player.getInventory().getContainerSize(); i++)
             if (player.getInventory().getItem(i).is(Content.CORE.get())) { coreSlot = i; break; }
-        if (coreSlot < 0 && !player.isCreative()) { message(player, "One Threshold Core is required."); return; }
+        if (coreSlot < 0 && !player.isCreative()) { message(player, "elsebase.message.one_threshold_core_is_required"); return; }
         if (replace(player, null, new PortalPair(UUID.randomUUID(), player.getUUID(), true, inner, endpoint))) {
             if (!player.isCreative()) player.getInventory().getItem(coreSlot).shrink(1);
-            LINKING.remove(player.getUUID()); message(player, "Permanent portal linked.");
-        } else message(player, "Endpoint obstructed or protected. No core consumed.");
+            LINKING.remove(player.getUUID()); message(player, "elsebase.message.permanent_portal_linked");
+        } else message(player, "elsebase.message.endpoint_obstructed_or_protected_no_core_consumed");
     }
 
     /** Contact with the doorway interior triggers travel even while falling through unsupported frames. */
@@ -265,7 +265,7 @@ public final class Portals {
         int tick = player.server.getTickCount();
         if (arrivalTick != tick) { arrivalTick = tick; arrivals = 0; }
         // Bound synchronous destination generation even when proactive mirror loading is disabled.
-        if (arrivals >= 2) { message(player, "Portal traffic busy; step back and try again."); return; }
+        if (arrivals >= 2) { message(player, "elsebase.message.portal_traffic_busy_step_back_and_try_again"); return; }
         arrivals++;
         ServerLevel destination = player.server.getLevel(target.dimension());
         if (destination == null && !source.inner()) { blocked(player, now); return; }
@@ -308,6 +308,6 @@ public final class Portals {
     }
     private static void blocked(ServerPlayer player, long now) {
         COOLDOWNS.put(player.getUUID(), now + 20);
-        message(player, "Portal unavailable: destination missing, obstructed or unsafe.");
+        message(player, "elsebase.message.portal_unavailable_destination_missing_obstructed_or_unsafe");
     }
 }

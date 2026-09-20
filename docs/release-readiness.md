@@ -1,6 +1,6 @@
 # Pre-1.0 audit — 2026-09-21
 
-Scope: portal placement/travel/expiry, chunk tickets, structural permissions, template parsing/imports/persistence/synchronization, client rendering lifecycle, generated resources and packaging. This is a code audit and stabilization pass, not a published 1.0 release. The artifact version remains `0.1.0-SNAPSHOT`.
+Scope: portal placement/travel/expiry, chunk tickets, structural permissions, template parsing/imports/persistence/synchronization, client rendering lifecycle, generated resources and packaging. The audit was completed on `0.1.0-SNAPSHOT`. The user subsequently authorized promotion to `1.0.0` and will publish the prepared artifact on CurseForge.
 
 ## Findings and corrections
 
@@ -38,11 +38,19 @@ python tools/check-release-jar.py
 
 The packaged-server check binds only loopback on an automatically chosen port. It never modifies an EULA file or a user's test world. Worlds, downloaded compatibility fixtures and logs remain in ignored `build/`.
 
-## Before publishing 1.0
+## Release preparation and remaining integration scope
 
-- Select the distribution license deliberately; metadata currently says `All Rights Reserved`, as in the development builds.
-- Set the final version and release metadata, prepare release notes and choose the publication destination. Logo exports can be completed separately; their absence does not affect gameplay.
+- Release metadata retains `All Rights Reserved`, unchanged from the development builds.
+- Version `1.0.0`, release notes and a CurseForge description are prepared. Publication is performed by the user. Logo exports can be completed separately; their absence does not affect gameplay.
 - Test the intended modpack on a real dedicated server with at least two independent clients, including its claims mod. Integrated-client tests and a headless packaged-server restart do not establish TCP multiplayer, arbitrary protection-mod compatibility or 100-player performance.
 - No new save-format migration is introduced. Strict reads accept intact current formats (world 4, templates 2) and reject damaged/incompatible data. After 1.0, future format changes need an explicit compatibility policy.
 
 No unresolved release-blocking defect was found within the exercised scope. That conclusion is bounded by the integration gaps above; it is not a blanket modpack-compatibility guarantee.
+
+## 1.0.0 artifact verification
+
+The final `elsebase-1.0.0.jar` passed `build`, all 25 GameTests and the two-launch packaged-server save/reload check. Expanded metadata confirms version 1.0.0, Minecraft 1.21.1, NeoForge [21.1.250,21.2) and All Rights Reserved. No save formats changed. Upload files, description, changelog and SHA-256 checksum are bundled under `build/releases/1.0.0/`.
+
+## Localization follow-up (still unpublished 1.0.0)
+
+All eight packaged catalogs match their authored UTF-8 sources (186 keys each). The final build, localization gate and all 25 GameTests passed. The real-client config fixture passed German/Chinese lookup and rendering, localized search, local-library selection, cancel, undo/reset and saved TOML checks. The vanilla template client fixture passed. The rebuilt JAR passed dedicated-server startup/save/restart. JourneyMap was not installed for integration testing; its standard biome lookup key is supplied. No save-format changes or version increment. The release folder and checksum now identify this updated artifact.

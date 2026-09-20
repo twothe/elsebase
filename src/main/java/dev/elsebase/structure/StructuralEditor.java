@@ -41,10 +41,10 @@ public final class StructuralEditor {
 
     /** Server derives the panel from current player pose, never from client-supplied coordinates. */
     public static void request(ServerPlayer player, boolean restore) {
-        if (!player.level().dimension().equals(Elsebase.DIMENSION)) { Portals.message(player, "Structural editing belongs in the Backdoor."); return; }
+        if (!player.level().dimension().equals(Elsebase.DIMENSION)) { Portals.message(player, "elsebase.message.structural_editing_belongs_in_the_backdoor"); return; }
         if (player.isSpectator()) return;
-        if (QUEUE.stream().anyMatch(j -> j.player().equals(player.getUUID()))) { Portals.message(player, "Your previous edit is still queued."); return; }
-        if (QUEUE.size() >= 128) { Portals.message(player, "Structural edit queue full; try again."); return; }
+        if (QUEUE.stream().anyMatch(j -> j.player().equals(player.getUUID()))) { Portals.message(player, "elsebase.message.your_previous_edit_is_still_queued"); return; }
+        if (QUEUE.size() >= 128) { Portals.message(player, "elsebase.message.structural_edit_queue_full_try_again"); return; }
         Panel panel = PanelSelection.select(player.level(), player.position(), player.getEyePosition(), player.getLookAngle(), restore);
         if (panel != null) QUEUE.add(new Job(player.getUUID(), panel, restore));
     }
@@ -86,7 +86,7 @@ public final class StructuralEditor {
             }
             if (blocked || !WorldEdits.apply(player, changes)) {
                 QUEUE.removeIf(j -> j.player().equals(job.player()));
-                Portals.message(player, "Surface obstructed or protected; edit cancelled.");
+                Portals.message(player, "elsebase.message.surface_obstructed_or_protected_edit_cancelled");
             } else if(job.restore() && WorldEdits.authorizeAppearance(player,job.panel().positions(true))) {
                 dev.elsebase.template.TemplateServer.restored(player,job.panel());
             }

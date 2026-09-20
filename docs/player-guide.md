@@ -12,13 +12,13 @@ All seven built-in themes now use the approved detailed block designs. The old g
 
 ## Enter and return
 
-Press **F** with a free 1�2 block space in front of you. Touch the portal surface within the copper-and-turquoise doorway to enter the Backdoor workspace. Access requires no item. F is also vanilla's default for swapping hands: rebind that action or the portal in Controls. Existing installations retain their saved keys; reset the Elsebase portal binding to adopt F.
+Press **F** with a free 1×2 block space in front of you. Touch the portal surface within the copper-and-turquoise doorway to enter the Backdoor workspace. Access requires no item. F is also vanilla's default for swapping hands: rebind that action or the portal in Controls. Existing installations retain their saved keys; reset the Elsebase portal binding to adopt F.
 
 Each player has one personal pair in total. F outside replaces the old pair and points to the home reference. F inside recalls only the inner doorway: the external return and reference stay fixed. If an inner doorway cannot be placed, F returns you directly outside instead. Only the owner can traverse a personal pair. Outside the Backdoor, an unused instant pair closes after 1,200 server ticks (one minute at normal tick rate). Summoning or successfully using a portal renews that minute. Both instant surfaces disappear; permanent portals remain. Inside the Backdoor the return never expires, including while logged out there. Offline outside owners still time out while the server runs; a stopped/paused world pauses its clock. Timer and residence survive saves/restarts.
 
 Your reference carpet exists from your first login and keeps its chunk ticking while you are online, even outside the Backdoor. Every personal-portal entry lands on the current carpet, including after recalling the inner portal or moving the anchor. Moving it transfers the loading; logout releases it. Entry checks its support and restores missing floor. If protection or an obstruction prevents repair, portal entry is refused rather than placing you over a hole. Permanent portals retain their fixed inner destinations. Leaving never requires a healthy anchor or a complete outside portal. A blocked/missing outside doorway uses a safe landing nearby, preserving any construction at its former location.
 
-Creating a doorway needs only its 1�2 body to be clear. Walls may directly border it; neither surrounding approach space nor floor support is required. Body contact with the inner surface triggers travel, including while falling. Breaking either half immediately removes the other half of that doorway; the remembered outside return remains available. Vanilla-replaceable plants and snow are cleared only within the two portal blocks. Fluids, solid terrain, machines and block entities are preserved; normal claim permissions apply. If an inner frame is obstructed, personal entry still lands on the repaired anchor; F inside remains available for recall or direct escape. Under heavy simultaneous traffic, step back and retry if the server reports busy.
+Creating a doorway needs only its 1×2 body to be clear. Walls may directly border it; neither surrounding approach space nor floor support is required. Body contact with the inner surface triggers travel, including while falling. Breaking either half immediately removes the other half of that doorway; the remembered outside return remains available. Vanilla-replaceable plants and snow are cleared only within the two portal blocks. Fluids, solid terrain, machines and block entities are preserved; normal claim permissions apply. If an inner frame is obstructed, personal entry still lands on the repaired anchor; F inside remains available for recall or direct escape. Under heavy simultaneous traffic, step back and retry if the server reports busy.
 
 The last outside entry point is saved separately from portal blocks. If no personal pair exists, F uses that remembered return; if no valid return remains, it finds a safe landing near the overworld spawn. In a void spawn area it can add a small stone safety platform in empty space. It does not clear buildings or machines. Operators can still use `/elsebase rescue` for exceptional recovery. New portal placement and anchor repair respect claims; retirement of your own stale instant-portal surfaces cannot block renewal.
 
@@ -76,13 +76,17 @@ Beds and respawn anchors do not provide a Backdoor respawn point and retain thei
 
 ## Updating an existing world
 
-Before release 1.0, development builds do not promise compatibility with older test worlds. Create a new test world after incompatible changes; automatic migration is not provided. This build requires save version 4. Worlds from the preceding double-wall build remain usable; older development formats require a new test world. Existing worlds are never automatically deleted or reset.
+Release 1.0.0 uses world save format 4 and theme format 2. Intact saves from the final audited development build remain compatible; the release does not regenerate rooms or change these formats. Earlier incompatible development formats have no automatic migration. Back up existing worlds before updating. Worlds are never automatically deleted or reset.
 
 Existing room chunks are not regenerated: old openings and the old bottom layer remain. A new world gives consistent geometry and continuous bedrock everywhere. Creation uses the current slab geometry and builds solid walls.
 
 ## Themes and settings
 
 Quiet Workshop is the default. Choose from the seven built-in themes in the tool menus; the server shares each surface appearance with all players.
+
+The common configuration now offers a searchable **Default room theme** selector with translated built-in names and local library themes. Select a theme and finish the native config screen to save; Cancel leaves the existing value unchanged. Reload the world to apply the global choice. Personal defaults and painted surfaces keep precedence. On multiplayer, this local screen does not change the remote server configuration.
+
+Interface catalogs are available in English, German, French, Spanish, Brazilian Portuguese, Russian, Simplified Chinese and Japanese. Minecraft’s language setting controls display names; your own theme names and saved IDs stay unchanged.
 
 Open **Mods → Elsebase → Config** from the main menu. Settings are stored in `config/elsebase-common.toml` and apply to this installation. Distribute that file as modpack defaults. On multiplayer servers, the server file controls gameplay and sends its brightness setting to clients; editing your local file cannot change server policy.
 

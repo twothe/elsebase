@@ -1,0 +1,38 @@
+[
+  {
+    "file": "images/elsebase-hero.png",
+    "size": [
+      1672,
+      941
+    ],
+    "bytes": 1792238,
+    "sha256": "f24d3f3116acf62324f4e268ba955530a86bc62f14f14e52f7cf58440830a2e2"
+  },
+  {
+    "file": "images/elsebase-room-ideas.png",
+    "size": [
+      1672,
+      941
+    ],
+    "bytes": 2020090,
+    "sha256": "1ceac27e9b4adfe01ad5c21de49a69561f23fcb0f35753650b23d6719b903ba8"
+  },
+  {
+    "file": "images/ingame-arcane-archive.png",
+    "size": [
+      854,
+      480
+    ],
+    "bytes": 128842,
+    "sha256": "d6b525491fe925253317de4abc8ce88ed6dc039cc901e202501f51a0f335819e"
+  },
+  {
+    "file": "images/ingame-deepstone-halls.png",
+    "size": [
+      854,
+      480
+    ],
+    "bytes": 111213,
+    "sha256": "6633d539c32dc0a1b618df7696447b70cc19252a3df5c5d690647b1a7d60775b"
+  }
+]

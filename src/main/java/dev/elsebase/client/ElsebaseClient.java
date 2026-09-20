@@ -14,6 +14,6 @@ public final class ElsebaseClient {
         container.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT,dev.elsebase.client.preview.PreviewSettings.SPEC);
         dev.elsebase.client.preview.PreviewClient.install();
         TemplateClient.install();
-        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+        container.registerExtensionPoint(IConfigScreenFactory.class, (mod, parent) -> new ConfigurationScreen(mod, parent, ConfigThemeScreen::filter));
     }
 }

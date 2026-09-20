@@ -42,6 +42,8 @@ A room-plan emblem surrounds a marked reference point with an open entrance. War
 
 ## Selection and production boundary
 
+The selected symbol now has a standalone [platform PNG export](branding/README.md) for CurseForge and GitHub (2026-09-21). It is a 1254 x 1254 opaque RGB image; the original boards remain historical studies. An editable vector master is not included.
+
 The user selected candidate 1 after comparing the three proposals. Preserve that direction in further refinement; assess small-icon silhouette and fit beside all seven themes. Exact production colors and typography remain to be specified.
 
 Each board explores a principal wordmark and two symbol applications. The first two include a monochrome mark; the third retains its amber center. These are illustrative applications, not measured 32-pixel tests. After selection, refine geometry, produce a vector master, define actual icon sizes, and verify legibility on light and dark backgrounds. Raster lettering does not establish a font license or editable typography. No animation or gameplay code is included.

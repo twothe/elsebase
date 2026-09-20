@@ -20,7 +20,7 @@
 - Protect the Backdoor's generated/restored structural walls, floors and ceilings from accidental destruction, including explosions. Player-placed blocks follow normal rules. Mining by players, machines, drills, block breakers and fake players is allowed subject to normal permissions.
 - No generated/emitting lamps. Default uniform visual brightness is a server-synchronized client lightmap policy; darkness keeps normal player lighting. Natural spawning is independent of visual brightness. Native main-menu configuration uses installation-wide COMMON config.
 - Generation-affecting config changes do not require retroactive migration: users need a new world for consistent results or accept old/new generation artifacts. Preserve existing player construction and validate changes that would corrupt saved state; this policy does not authorize remapping allocations.
-- The user selected Elsebase and the first logo direction, The doorway beyond (Die Tür ins Anderswo). Final logo exports remain unfinished. Subsequent implementation authorization covers the current Elsebase technical identity.
+- The user selected Elsebase and the first logo direction, The doorway beyond (Die Tür ins Anderswo). The square platform PNG is available in `docs/branding/`; an editable vector master remains unfinished. Subsequent implementation authorization covers the current Elsebase technical identity.
 - Run `build` (includes domain tests) and `runGameTestServer` after gameplay changes. GameTests use isolated `build/gametest-themes-v2`; their flat-preset fixture is test-only. Vanilla's mock-server-player helper always reports creative; use a real server player fixture when testing survival costs.
 - Automated graphical tests must leave the desktop cursor free and stay silent from startup. Test-only mixins provide runtime overrides without changing normal controls or saved audio settings.
 - Preserve allocator reservations on load failures. Vanilla SavedData loading swallows exceptions; never silently replace a corrupt existing registry. Validate index mutations before touching the live map.
@@ -56,6 +56,7 @@ Elsebase implements a permanent workspace dimension with chunk-aligned rooms, re
 - [Theme gallery](docs/theme-gallery.md): seven accepted visual concepts and generation provenance, distinct from current texture palettes.
 - [Naming discussion](docs/naming-and-logo.md): selected Elsebase name, earlier shortlist, research and discarded directions.
 - [Elsebase logo proposals](docs/elsebase-logo-proposals.md): selected doorway direction, alternative studies, images and production provenance.
+- [Platform logo](docs/branding/README.md): square PNG for CurseForge and GitHub, with generation provenance.
 
 ## Glossary
 

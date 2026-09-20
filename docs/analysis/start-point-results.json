@@ -1,0 +1,144 @@
+{
+  "assumptions": {
+    "playerCount": 100,
+    "radius": 1000000,
+    "pairs": 4950,
+    "trials": 20000,
+    "seed": "0x4b1d2026",
+    "distribution": "independent uniform disk"
+  },
+  "results": [
+    {
+      "distance": 1024,
+      "pairProbability": 0.0000010481202898282273,
+      "expectedClosePairs": 0.0051881954346497255,
+      "poissonAnyPairApproximation": 0.005174759993988566,
+      "rigorousUnionUpperBound": 0.0051881954346497255,
+      "simulatedAnyPairProbability": 0.0053,
+      "simulationStandardError": 0.0005134155237232315,
+      "radiusForUnionBoundAtMostOneInMillion": 72044786.07088788
+    },
+    {
+      "distance": 4096,
+      "pairProbability": 0.000016748050560474955,
+      "expectedClosePairs": 0.08290285027435103,
+      "poissonAnyPairApproximation": 0.0795594365751126,
+      "rigorousUnionUpperBound": 0.08290285027435103,
+      "simulatedAnyPairProbability": 0.0838,
+      "simulationStandardError": 0.001959305489197639,
+      "radiusForUnionBoundAtMostOneInMillion": 288179144.2835515
+    },
+    {
+      "distance": 8192,
+      "pairProbability": 0.00006687554077738943,
+      "expectedClosePairs": 0.3310339268480777,
+      "poissonAnyPairApproximation": 0.28181919698375485,
+      "rigorousUnionUpperBound": 0.3310339268480777,
+      "simulatedAnyPairProbability": 0.2799,
+      "simulationStandardError": 0.0031745550081861864,
+      "radiusForUnionBoundAtMostOneInMillion": 576358288.567103
+    },
+    {
+      "distance": 16384,
+      "pairProbability": 0.0002665688796140495,
+      "expectedClosePairs": 1.3195159540895451,
+      "poissonAnyPairApproximation": 0.7327353609836851,
+      "rigorousUnionUpperBound": 1,
+      "simulatedAnyPairProbability": 0.7321,
+      "simulationStandardError": 0.0031315298976698274,
+      "radiusForUnionBoundAtMostOneInMillion": 1152716577.134206
+    },
+    {
+      "distance": 32768,
+      "pairProbability": 0.0010588095135583887,
+      "expectedClosePairs": 5.241107092114024,
+      "poissonAnyPairApproximation": 0.9947056077897355,
+      "rigorousUnionUpperBound": 1,
+      "simulatedAnyPairProbability": 0.99505,
+      "simulationStandardError": 0.0004962608940869717,
+      "radiusForUnionBoundAtMostOneInMillion": 2305433154.268412
+    }
+  ],
+  "grids": [
+    {
+      "radius": 65536,
+      "spacing": 8192,
+      "slots": 195,
+      "maximumAbsoluteCoordinate": 65528
+    },
+    {
+      "radius": 65536,
+      "spacing": 16384,
+      "slots": 47,
+      "maximumAbsoluteCoordinate": 65528
+    },
+    {
+      "radius": 65536,
+      "spacing": 32768,
+      "slots": 11,
+      "maximumAbsoluteCoordinate": 65528
+    },
+    {
+      "radius": 131072,
+      "spacing": 8192,
+      "slots": 795,
+      "maximumAbsoluteCoordinate": 131064
+    },
+    {
+      "radius": 131072,
+      "spacing": 16384,
+      "slots": 195,
+      "maximumAbsoluteCoordinate": 131064
+    },
+    {
+      "radius": 131072,
+      "spacing": 32768,
+      "slots": 47,
+      "maximumAbsoluteCoordinate": 131064
+    },
+    {
+      "radius": 262144,
+      "spacing": 8192,
+      "slots": 3207,
+      "maximumAbsoluteCoordinate": 262136
+    },
+    {
+      "radius": 262144,
+      "spacing": 16384,
+      "slots": 795,
+      "maximumAbsoluteCoordinate": 262136
+    },
+    {
+      "radius": 262144,
+      "spacing": 32768,
+      "slots": 195,
+      "maximumAbsoluteCoordinate": 262136
+    }
+  ],
+  "rawCoordinatePrecision": [
+    {
+      "coordinate": 65536,
+      "floatUlp": 0.0078125,
+      "doubleUlp": 1.4551915228366852e-11
+    },
+    {
+      "coordinate": 131072,
+      "floatUlp": 0.015625,
+      "doubleUlp": 2.9103830456733704e-11
+    },
+    {
+      "coordinate": 262144,
+      "floatUlp": 0.03125,
+      "doubleUlp": 5.820766091346741e-11
+    },
+    {
+      "coordinate": 1000000,
+      "floatUlp": 0.0625,
+      "doubleUlp": 1.1641532182693481e-10
+    }
+  ],
+  "checks": {
+    "fullDiskPairProbability": 1.0000000001259362,
+    "zeroDistancePairProbability": 0
+  }
+}

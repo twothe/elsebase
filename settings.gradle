@@ -1,0 +1,12 @@
+// Resolves the build plugins and Java toolchains for the development workspace.
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'backroom-industry'

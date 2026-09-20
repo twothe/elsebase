@@ -1,6 +1,6 @@
 # Themes and essential configuration
 
-Status: updated 2026-09-20. Gameplay implementation remains unapproved. The user confirmed that one visual style per modpack is sufficient and requested inclusion of all seven illustrated styles where feasible; simultaneous per-player or per-area styles are not required. Suitability for technology and magic modpacks, third-party skins and a small configuration surface remain requirements. The delivery architecture and individual configuration defaults below remain proposals.
+Status: implementation authorized on 2026-09-20. All seven themes have initial vanilla-texture resource-pack palettes; Quiet Workshop is the implementation default. The historical proposals below are superseded where necessary by [the implementation contract](implementation.md), which records actual settings, bounds and third-party customization. One visual style per modpack remains the scope.
 
 ## 1. Feasibility and scope
 

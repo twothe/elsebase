@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "elsebase:floor",
+    "elsebase:border",
+    "elsebase:wall",
+    "elsebase:ceiling",
+    "elsebase:light"
+  ]
+}

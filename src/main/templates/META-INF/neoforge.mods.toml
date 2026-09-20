@@ -8,8 +8,9 @@ modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
 description='''
-Development foundation for a permanent industrial dimension with modular rooms
-and paired cross-dimensional thresholds. Gameplay is not implemented yet.
+A permanent workspace beyond the world. Summon a doorway, build your base,
+and return through persistent cross-dimensional thresholds. Includes modular
+rooms, structural tools and seven resource-pack appearances.
 '''
 
 [[dependencies.${mod_id}]]

@@ -1,0 +1,7 @@
+{
+  "type": "elsebase:backdoor",
+  "generator": {
+    "type": "elsebase:rooms",
+    "biome": "elsebase:backdoor"
+  }
+}

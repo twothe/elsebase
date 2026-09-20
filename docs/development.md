@@ -1,4 +1,96 @@
-# Development foundation
+# Development and verification
+
+## Portal contact, visible surface and outside timeout — current build
+
+`gradlew build runGameTestServer` passed with all **13 GameTests**, domain tests, clean world saving and exit code 0. The new test calls the actual BlockState entityInside callback with the player's feet below an unsupported inner portal; body contact successfully returns outside. Earlier full-body restrictions would reject this state. Wholly outside bodies still do not trigger. A personal entry test removes both the inner frame and its support, then confirms arrival on the repaired anchor pedestal without reconstructing the unsupported frame.
+
+Lifetime coverage checks the exact 1199/1200-tick boundary, successful exit renewal, refreshed deadline retention, no expiry inside, offline-inside retention, saved deadline/residence round-trip, outside expiry removing both loaded surfaces, and preservation of a chest replacing one portal block plus independent recovery history. The new contact test runs five ticks after batch startup to avoid colliding with the existing fixtures' two-arrivals-per-tick global throttle; that production bound remains unchanged.
+
+`runClient -PverifyPreview` loaded the generated translucent models and captured `run/screenshots/elsebase-portal-surface.png`. Visually inspected: purple portal surface within the existing trim, without destination rendering. It uses vanilla's animated nether-portal sprite. Client and integrated server saved and closed cleanly. All fourteen portal-half models across seven themes have the two-sided surface; resource generation is reproducible. This is not a shader-pack or multi-client compatibility test.
+
+Final JAR SHA-256: `EB9EBDE8191135657FF3135AE9966EB73B1006853FFA2422778F805C4978F16A`. JAR includes InstantExpiry and the new model surface. Original design hash unchanged. Save version remains 4; the additive lifetime list preserves new timers across restarts, while old records without known owner residence are initialized on login rather than risking removal of an offline inside owner's only return. No new world is required.
+
+## Previous portal recovery and current-anchor entry build
+
+`gradlew build runGameTestServer` passed: domain checks and all **12 GameTests**, successful saving of all dimensions, exit code 0. Regression cases cover personal re-entry after inner recall and anchor movement, missing anchor footing during exit with all inner placement events denied, a half-destroyed inner frame, a destroyed outside frame replaced by a chest, safe nearby return around an obstructed landing, recall without rebuilding the outside location, old-surface break denial during renewal, F recovery when new inner placement is denied, pair deletion, absent return history and removed external dimensions. The independent return record survives SavedData round-trip and pair removal.
+
+An additional unsafe-spawn fixture covers the emergency refuge path: every nearby floor is magma, so recovery adds a 3x3 stone platform in empty air and lands safely there. Existing magma remains untouched. The temporary test spawn is restored in a finally block. Normal build/claim protections remain active for new entrances and anchor repairs; retiring own instant surfaces and emergency empty-space footing are deliberate recovery exceptions.
+
+Causal findings: arrival previously used the anchor only when the physical target endpoint equaled the current reference, so recalling the inner frame or moving the marker bypassed it. The shared replacement transaction revalidated both endpoints, so an obstructed/deleted outside doorway blocked an inside recall. Plane traversal required both frames and the exact mapped landing; removing a frame or filling that landing prevented exit. The old anchor-repair call already had an entry-only guard; no direct anchor-floor-only exit dependency was found. The new regression explicitly verifies that missing inner support and denied inner repairs do not affect leaving, alongside damaged frame recovery.
+
+The recovery fixture initially chose a spot near a chunk boundary; seeded walls sometimes prevented a new doorway and correctly triggered direct escape. It now selects the guaranteed clear central interior when asserting successful frame recall, and separately denies placement when asserting direct F escape.
+
+Final JAR SHA-256: `8D5372804DEAE06BE42C75F13CE4F93FF05DF2493CA4892907C8BF1B2F769011`. JAR contains ReturnTravel and the updated portal/save logic; original design SHA-256 unchanged. Saved-data version remains 4 with an additive returns list. Existing current-format worlds can continue; no generation changes. No new client-rendering code changed or interactive multiplayer session was run. Third-party teleport interception and a completely filled/protected custom world spawn still require modpack-specific testing; if neither a safe landing nor empty refuge space exists, recovery reports it instead of destroying builds or crashing.
+
+## Previous gaze-based structural tools build
+
+`gradlew build runGameTestServer` passed: domain checks plus all **11 GameTests**, followed by successful world saving and exit code 0. New coverage exercises six gaze-selected surfaces at negative coordinates, adjoining-wall selection, far/diagonal/vertical-neighbor exclusion, missing-border wall reconstruction, full slab perimeter repair, preservation of repaired walkways during removal and queued-edit range revalidation. Tool tests now assert air-use and block-use operate on gaze rather than clicked coordinates; Shift does not change operation. Existing anchor support, claims, persistence and portal tests remain green.
+
+`gradlew runClient -PverifyPreview` creates a uniquely named development fixture world and prepares a wall with its entire floor/ceiling border row missing. In the actual client, the translucent green wall preview was captured and inspected; normal client item use sent the action and restored that wall, confirmed from synchronized client block states. A second capture verified the full-slab floor preview. Files: `run/screenshots/elsebase-preview-wall.png` and `run/screenshots/elsebase-preview-floor.png`. Client and integrated server closed cleanly and saved every dimension. The opt-in fixture makes future preview checks repeatable without touching existing user saves. Orange removal uses the same rendering path; shader packs and a separate multiplayer client remain unverified.
+
+The first new GameTest attempted selection immediately after a synthetic teleport into an unloaded negative-coordinate chunk. Selection correctly returned null rather than causing generation; the fixture now explicitly prepares its chunk. That failed run also retained its mock player and reproduced the documented vanilla unload-loop shutdown issue (confirmed by thread dump); only that test server was terminated. Subsequent complete runs passed and shut down normally.
+
+Resources regenerate identically and parse as UTF-8. JAR inspection confirms the preview class and current tooltips, and no obsolete structural Mode class. Final JAR SHA-256: `A9890E6CB8EE3BC694FBA91302B7DCA444A4402E971E7E5C9285159D404AEA56`. Original specification hash unchanged. Geometry and saved-data version remain 4; the preceding double-wall test world can continue without regeneration.
+
+## Previous independent room boundaries and native configuration build
+
+`gradlew build runGameTestServer` passed: production domain checks and all **10 GameTests**, clean dimension saving and exit code 0. New assertions verify aligned 2x2 passages through both independently editable wall halves, all four preserved floor borders, removal of only the targeted half, solid wall creation at seeded openings, grass/snow clearance at the chosen portal location, solid/block-entity refusal and claim-denied placement rollback. Existing anchor safety, lifecycle, tools, selective explosions, persistence and mirror loading continue to pass. Save version 4 round-trips; versions 1, 2, 3 and 5 are rejected. Fixtures use `build/gametest-v4`.
+
+Default visual brightness and darkness are tested through the production lightmap policy, including server override/reset. Generated blocks and decorative light panels emit no light. Synthetic GameTest connections skip payload negotiation; the lighting sender checks the pinned NeoForge `hasChannel` contract before sending. A real multi-client server test remains outstanding.
+
+`gradlew runClient -PverifyClient` loaded resources and opened the registered native NeoForge config editor from the main menu. The opt-in check asserts COMMON config is loaded and the editable section screen opens, then captures `run/screenshots/elsebase-config-check.png`. The capture was visually inspected: five editable groups and normal Done control. First-launch accessibility onboarding is bypassed only for this development check. The client exited cleanly. This verifies the actual registered factory/screen, not manual navigation or every individual setting edit.
+
+The final `gradlew build` passed after client-check and localization changes. Generated resources are reproducible and all JSON parses as UTF-8. JAR contents include the client config registration, lighting policy and renamed items. JAR SHA-256: `C112F529862E49C65903AE8231743AF99052BFAC2FBA44587CF8E0B03FBF39A6`. The original design hash remains unchanged. A 64-column geometry-only sample measured 10,308.5 solid blocks per column and 16–17 ms; no lighting, disk I/O or multiplayer performance claim follows from this measurement.
+
+Use a new test world. Settings now live in installation-wide `config/elsebase-common.toml`, not the earlier per-world SERVER file. Full visual gameplay review, shader integration, third-party automation/claims and multiplayer lighting synchronization remain unverified.
+
+## Previous stacked rooms, tools and anchors build
+
+`gradlew build runGameTestServer` passed with nine GameTests, successful saving of every dimension and exit code 0. Tests cover initial carpet creation, landing on the carpet, entry-time floor repair, claim-denied repair rollback, online anchor ticket acquisition/transfer/logout release, separate structural tools, Shift-right-click-only mode changes without editing, current-level ceiling operations and marker-floor protection from above and below. Existing portal lifecycle, mirror loading, persistence, explosion, darkness and fake-player tests still pass. Unsupported saved-data versions 1, 2 and 4 are rejected; version 3 round-trips.
+
+Domain checks exercise actual generated exits on all sixteen levels across positive/negative coordinates, doorway sizes/offsets, bedrock and height bounds. A 64-column layout sample measured 7,446.5 solid blocks per column and 19.4 ms of pure geometry evaluation; lighting, I/O and full server performance are not measured by that sample.
+
+Client startup loaded the new tools/resources without model or texture errors; it was closed cleanly. The subsequent floor-model underside texture change was verified against local assets, not by another interactive playthrough. Model front elevations were regenerated and inspected. All 28 unique vanilla texture references resolve; generated JSON is valid UTF-8. JAR inspection confirms 128 height, both new tool recipes and absence of the obsolete combined-tool resources.
+
+Final JAR SHA-256: `31F8C2DF012649A0BC3152BC3F62236ECA1F365E2B9339AC793D5FBBB659E4ED`. Original specification hash remains unchanged. The reduced-height build needs a new world; isolated tests now use `build/gametest-v3`, leaving previous fixtures untouched. The first run in the new test directory logged the vanilla missing `server.properties` message, created its defaults and completed successfully; subsequent runs loaded them normally.
+
+Remaining verification: full interactive playthrough, third-party claims/automation behavior, multiplayer scale and complete lighting/I/O profiles. See [generation and loading trade-offs](stacked-rooms-and-anchors.md).
+
+## Pre-1.0 compatibility simplification — 2026-09-20
+
+Per explicit user direction, older development worlds need not remain compatible before release 1.0. Removed the version-1 portal migration; current version 2 round trips and orphan/state reconciliation remain covered. Unsupported versions 1 and 3 are explicitly rejected in tests. Earlier migration verification below is historical and does not describe the current contract.
+
+`gradlew build runGameTestServer` passed: domain tests and all eight Minecraft GameTests, all dimensions saved, exit code 0. JAR SHA-256: `C77DF1501FB5040C26C63B6B92033FF5C55AC1F00030A5E0C1A893BC24F704E3`. No client rendering changed in this follow-up.
+
+## Doorway refinement verification — 2026-09-20
+
+- Final `gradlew build runGameTestServer`: successful, including domain tests and all **8 GameTests**, followed by saving every dimension and exit code 0.
+- New coverage: exact 1×2 geometry, all twelve offsets, sparse boundary distribution, sealed rooms/dead ends, continuous bedrock material, actual vanilla bedrock mapping, narrow/tall traversal rejection, correct portal halves, version-1 migration, legacy block cleanup, preserved neighboring construction and reconciliation idempotence.
+- `gradlew runClient`: OpenGL 4.6 initialization and model/texture atlas loading successful, no missing model/texture errors. Client closed cleanly. This verifies startup/resource loading, not a full interactive playthrough.
+- `python tools/preview-models.py` (Pillow) validated **28 unique vanilla texture references**, including optional themes, and generated `build/model-preview.png`. Front elevations were visually inspected; this is not a gameplay screenshot. The helper makes future model changes reviewable without launching seven separate theme sessions.
+- An expanded run passed all eight assertions but hung at shutdown. A thread dump again located the busy server thread in vanilla chunk-unload callbacks. The survival fixture remained connected until shutdown, unlike the previously corrected instant fixture. It now disconnects after assertions and allows 40 ticks of normal teardown. The subsequent complete run saved all worlds and exited successfully. No production chunk scheduling was patched; wider modpack shutdown behavior remains unverified.
+- Final JAR SHA-256: `F09ECE68A526937FB644A704C5F696366A63A08A0CE59E5347C5EFC01CC4ED93`.
+- Original specification SHA-256 unchanged. Existing room chunks retain previous geometry/bottom layers; version-2 portals migrate at chunk load. See the player guide for saved bindings and vanilla F conflict.
+
+## Previous first-playable verification — 2026-09-20
+
+Gameplay implementation is authorized and the first static-portal build is implemented as **Elsebase**, namespace `elsebase`, Java package/group `dev.elsebase`. Pinned toolchain versions below are unchanged. Output: `build/libs/elsebase-0.1.0-SNAPSHOT.jar`. The bootstrap record below is historical.
+
+- `gradlew build runGameTestServer`: successful. The build runs the dependency-free `domainTest` runner; the ordinary JUnit test task is deliberately disabled because no JUnit framework is used.
+- All **7 Minecraft GameTests passed**, including real portal crossing and return, obstructed return refusal, anchor/recall persistence contracts, registry serialization and overlap rejection, survival crafting-component consumption/refund and pair limits, ceiling editing/restoration/obstruction safety, fake-player mining, selective actual explosions, light/spawn policy, and independent mirror-ticket causes without cascades.
+- `gradlew runClient`: client initialized, OpenGL 4.6 and resource/model atlases loaded. First launch found two invalid animated-item texture names; corrected to actual clock/compass frames and relaunched with no missing-model/texture warnings. Test clients were closed after inspection.
+- Validated all **44 vanilla texture references** across seven theme palettes against the resolved Minecraft resources JAR.
+- Original specification SHA-256 remains unchanged. JSON assets are reproducible using `node tools/generate-resources.mjs`.
+
+GameTests use `build/gametest`, separate from client/server development data in `run`. The GameTest launcher bakes only its flat preset, so a test-only pack supplies the actual Elsebase dimension in that preset. A before-batch fixture resets test registry data for repeatable runs. No EULA was accepted or modified by the agent.
+
+An expanded return test initially passed its assertions but hung during immediate test-server shutdown. The thread dump showed vanilla `ChunkMap.scheduleUnload` repeatedly waiting for generation references inside the unload queue. That isolated test process was terminated. The fixture now disconnects its embedded player after the final cross-dimensional return and allows 40 ticks for asynchronous teardown before ending the batch. The subsequent full run passed all seven tests, saved all dimensions and exited successfully. This is test-fixture lifecycle handling, not a claimed fix for every vanilla/modpack shutdown issue.
+
+Final verified JAR SHA-256: `BD656E85C410B2A60E6AFA423C7D9D76375AC18E0BC41BDED288E0F3FE260696`. Inspected metadata expansion, entry point, access transformer, dimension data, portal model state and bundled theme pack entries.
+
+Remaining limits: client startup is not a full interactive playthrough or visual review of all seven packs. Specific claims/modded drills, shaders/performance mods and 100-player performance remain unverified. Seven styles are functional vanilla-texture palettes; final bespoke artwork/logo exports and live previews are not delivered. See [implementation](implementation.md) and [player guide](player-guide.md).
+
+## Historical bootstrap record
 
 ## Scope and provenance
 

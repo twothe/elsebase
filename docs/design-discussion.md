@@ -2,6 +2,8 @@
 
 ## Status
 
+Update 2026-09-20: the user explicitly authorized implementation after selecting the first Elsebase logo. The first static-portal build is now implemented; [implementation](implementation.md) records concrete defaults and resolves the historical open proposals below. [Development](development.md) records verification and remaining gaps.
+
 The user authorized the NeoForge development foundation and requested brainstorming before gameplay implementation. The original [design specification](backroom-industry-design.md) is input to that discussion, not approval to implement its proposed feature set.
 
 Only decisions explicitly recorded as accepted in the decision log are agreed. Other recommendations remain proposals. Consolidate the specification before implementation is authorized.
@@ -125,3 +127,36 @@ Accepted lifecycle: no retroactive regeneration/migration is required for lighti
 | 2026-09-20 | Naming sequence | User rejects Hingespace as awkward, proposes Otherspace/Elsebase and requests 3–5 names first. No further logo creation until a name is agreed. Current shortlist is documented separately; no name or rebranding is approved. |
 | 2026-09-20 | Selected name | User chooses **Elsebase**, also appreciating its perceived “El-space” sound association, and requests three logo proposals. This satisfies the name-before-logo condition. No logo, technical rename or gameplay implementation is approved by this choice. |
 | 2026-09-20 | Selected logo direction | User prefers the first Elsebase logo, **The doorway beyond (Die Tür ins Anderswo)**. Adopt its doorway, offset teal room and orange threshold as the design reference. Vector masters and production icon exports remain unfinished. |
+| 2026-09-20 | Implementation authorization | User says “sehr gut, dann bitte den Mod soweit umsetzen”. Implement the first playable static-surface version. Concrete implementation choices and remaining scope are recorded in `implementation.md`; namespace is now `elsebase`. |
+
+## Approved refinement — 2026-09-20
+
+The first playable feedback authorizes F/V defaults, 1×2 portals, non-centered and rarer 1×2 generated doors, dead ends/sealed rooms, bedrock at Y=0 and an in-game visual pass. This supersedes the prior guaranteed-connectivity layout. Boundary distribution is 10% open / 30% door / 60% solid, with doorway offsets 2–13. Existing rooms remain untouched; portal records and physical frames migrate while retaining ownership and origin positions. Static fallback is an open decorated frame, not an opaque sheet or live destination view.
+
+## Pre-1.0 compatibility policy — 2026-09-20
+
+The user explicitly accepts creating new test worlds until release 1.0. Backward compatibility and old-save migration are not requirements during development. This supersedes the earlier portal migration commitment; the version-1 migration was removed. Supported saves still require correct persistence and validation, and unsupported saves must not be silently reset.
+
+## Stacked rooms and safer tools approved
+
+The user resumed the handover and added an approximately eight-block room-height grid (two levels per 16-block section), an initial personal carpet, online-owner chunk loading, entry support repair and refusal to remove supporting floors. Implementation uses 128 height, sixteen levels with shared slabs (seven clear blocks, six at the roof), mandatory exits, separate removal/creation tools, tooltips and Shift-right-click-only mode changes. This supersedes sealed rooms, single-layer generation and the V binding. All levels generate together per requested horizontal chunk; vertical connections are player-built. See `stacked-rooms-and-anchors.md` for performance boundaries.
+
+
+## Confirmed refinement: independent room shells and visual brightness (2026-09-20)
+
+Implemented per user direction: each chunk owns four border/wall sides; neighboring walls are two blocks thick with aligned 2x2 passages, while portals remain 1x2. Floor/ceiling editing preserves all perimeter supports. Wall creation makes a solid wall instead of restoring seeded openings. Portal placement clears vanilla-replaceable dry blocks through the protected transaction. Items are named Spawn Anchor Tool and Portal Generator. Generated lamps are removed; normal appearance is uniformly bright through the lightmap and darkness retains vanilla lighting. Native main-menu configuration uses an installation-wide COMMON file with server-authoritative gameplay/lighting. These decisions supersede older proposals in linked historical documents; see the implementation and player guide for the current contract.
+
+
+## Confirmed refinement: gaze-based structural tools (2026-09-20)
+
+Double walls are retained. Structural item modes and RUN are removed. Shared client/server geometric selection offers the current room's six surfaces even without physical borders; removal may reach the exposed adjoining neighbor wall half. A translucent preview indicates the operation footprint. Creation repairs the full floor/ceiling slab including hand-mined perimeter blocks; removal preserves that perimeter. Each click performs one bounded, claim-aware edit. The generator and saved-data format are unchanged.
+
+
+## Confirmed refinement: escape independent of physical portals (2026-09-20)
+
+Personal entry always resolves the current spawn anchor; inner recall never changes that destination. Leaving depends on the recorded outside destination, not the condition of either frame or the inner anchor. A bounded safe-landing search handles blocked/missing outside doorways, with overworld spawn as fallback. F inside directly returns the player when a recalled frame cannot be placed or no personal pair exists. Last outside entry/summon locations are persisted independently of pair lifetime. Retire own stale portal state without letting its protection callbacks block renewal; preserve other registered portals and nonportal construction. Emergency spawn footing may be added only in empty space.
+
+
+## Confirmed refinement: portal contact and automatic closure (2026-09-20)
+
+The visible portal interior is a body-contact trigger, including when its supporting floor has been mined. Personal arrivals on a repaired anchor pedestal without an inner portal are valid. A translucent animated fallback surface is shown without live destination rendering. Instant pairs close after 1200 server game ticks of outside inactivity, refreshed by summoning or successful use. Inside owners retain their return even offline; outside offline timers advance while the world runs. Persist timer/residence, keep recovery history, leave permanent portals unchanged and avoid generating chunks only to clean expired surfaces.

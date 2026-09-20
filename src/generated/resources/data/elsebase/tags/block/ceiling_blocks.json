@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "elsebase:ceiling",
+    "elsebase:light"
+  ]
+}

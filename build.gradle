@@ -21,6 +21,7 @@ sourceSets.main.resources {
 
 neoForge {
     version = project.neo_version
+    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
 
     parchment {
         mappingsVersion = project.parchment_mappings_version
@@ -30,6 +31,8 @@ neoForge {
     runs {
         client {
             client()
+            if (project.hasProperty('verifyClient')) systemProperty 'elsebase.verifyClient', 'true'
+            if (project.hasProperty('verifyPreview')) systemProperty 'elsebase.verifyPreview', 'true'
         }
         server {
             server()
@@ -37,6 +40,7 @@ neoForge {
         }
         gameTestServer {
             type = 'gameTestServer'
+            gameDirectory = file('build/gametest-v4')
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
         data {
@@ -56,6 +60,17 @@ neoForge {
         }
     }
 }
+
+// Exercise production domain code without requiring a Minecraft process or extra test framework.
+tasks.register('domainTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.elsebase.world.DomainTests'
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+}
+tasks.named('check') { dependsOn 'domainTest' }
+// DomainTests has its own executable runner; Minecraft integration tests use runGameTestServer.
+tasks.named('test') { enabled = false }
 
 def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     def replaceProperties = [

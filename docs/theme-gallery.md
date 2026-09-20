@@ -1,6 +1,6 @@
 # Visual theme studies
 
-Created 2026-09-19 with the built-in ImageGen tool. These seven AI-generated architectural studies illustrate the [requested themes](themes-and-configuration.md); they are not in-game screenshots, production textures or exact block layouts. On 2026-09-20 the user accepted all seven visual directions and requested inclusion of all of them where feasible. One style per modpack is the accepted scope; the default style is undecided. Gameplay implementation still awaits explicit approval.
+Created 2026-09-19 with the built-in ImageGen tool. These seven AI-generated architectural studies illustrate the [requested themes](themes-and-configuration.md); they are not in-game screenshots, production textures or exact block layouts. On 2026-09-20 the user accepted all seven directions and subsequently authorized implementation. The first build supplies seven functional vanilla-texture palettes, with Quiet Workshop as default; custom reproductions of this artwork remain follow-up work. One style per modpack is the accepted scope.
 
 The brief keeps a similar room composition, an opaque static portal surface and a carpet-thin floor anchor across the candidates. Image generation may vary dimensions and detail; portal size, room height, structural boundaries, lighting and final texture resolution still need implementation decisions. The images do not demonstrate rendering performance or collision behavior.
 

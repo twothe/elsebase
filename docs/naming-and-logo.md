@@ -1,6 +1,6 @@
 # Naming exploration
 
-Status: name and logo direction selected, 2026-09-20. **The user chose Elsebase** and then selected the first logo proposal, **The doorway beyond (Die Tür ins Anderswo)**. The user also likes hearing an association with “El-space”; this is a creative sound association, not a claim of identical pronunciation. Production logo assets remain unfinished. Existing mod IDs, packages and release metadata remain unchanged.
+Status: name and logo direction selected, 2026-09-20. **The user chose Elsebase** and then selected the first logo proposal, **The doorway beyond (Die Tür ins Anderswo)**. The user also likes hearing an association with “El-space”; this is a creative sound association, not a claim of identical pronunciation. Production logo assets remain unfinished. After subsequent implementation authorization, the namespace/package are now elsebase / dev.elsebase; see implementation.md.
 
 ## Brief and method
 

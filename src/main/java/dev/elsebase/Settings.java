@@ -1,0 +1,37 @@
+package dev.elsebase;
+
+import java.util.List;
+import net.neoforged.neoforge.common.ModConfigSpec;
+
+/** Installation-wide server policy, editable before loading a world through NeoForge's config screen. */
+public final class Settings {
+    public static final ModConfigSpec SPEC;
+    public static final ModConfigSpec.BooleanValue INSTANT, NATURAL_SPAWNS, DARKNESS;
+    public static final ModConfigSpec.IntValue PERMANENT_LIMIT, MIRROR_LIMIT, EDIT_BUDGET, RADIUS, SPACING;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> EXCLUDED;
+    static {
+        var b = new ModConfigSpec.Builder();
+        b.push("portals");
+        INSTANT = b.comment("Disables new outside instant entrances; existing returns remain usable.").define("allowInstant", true);
+        PERMANENT_LIMIT = b.comment("Set zero to disable new permanent pairs. Existing pairs remain usable.").defineInRange("maxPermanentPairsPerPlayer", 4, 0, 64);
+        EXCLUDED = b.comment("Dimension IDs in which new entrances cannot be created. Existing returns remain usable.")
+                .defineListAllowEmpty("excludedExternalDimensions", List.of(), () -> "minecraft:the_end",
+                        v -> v instanceof String s && net.minecraft.resources.ResourceLocation.tryParse(s) != null);
+        b.pop().push("chunkloading");
+        MIRROR_LIMIT = b.comment("Maximum direct endpoint chunks held by Elsebase. Zero disables proactive loading; tickets may also affect neighboring chunks.")
+                .defineInRange("maxMirroredEndpointChunks", 256, 0, 1024);
+        b.pop().push("structure");
+        EDIT_BUDGET = b.comment("Global changed-block budget per tick. Panels are committed atomically; minimum covers one ceiling.")
+                .defineInRange("maxChangedBlocksPerTick", 1024, 256, 8192);
+        b.pop().push("allocation");
+        RADIUS = b.comment("Frozen on first allocation. Changing this for an existing save is rejected.").defineInRange("radius", 131072, 1024, 1000000);
+        SPACING = b.comment("Frozen with radius; must be divisible by 16. New worlds recommended.").defineInRange("minimumSpacing", 8192, 256, 1000000);
+        b.pop().push("world");
+        NATURAL_SPAWNS = b.comment("Allow natural mobs; spawners and machines retain normal rules.").define("allowNaturalMobSpawning", false);
+        DARKNESS = b.comment("Disable uniform visual brightness in the Backdoor. No generated light sources in either mode. Player lighting and natural spawn rules remain normal. Server controls multiplayer brightness.")
+                .define("darkness", false);
+        b.pop();
+        SPEC = b.build();
+    }
+    private Settings() {}
+}

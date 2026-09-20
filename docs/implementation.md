@@ -1,0 +1,61 @@
+# First playable implementation
+
+User authorization: 2026-09-20. Confirmed discussion decisions supersede conflicting original proposals. Namespace/package: `elsebase` / `dev.elsebase`; backward compatibility is not required before release 1.0. Incompatible development changes may require a new test world; no migrations or compatibility layers are maintained.
+
+## Architecture and contracts
+
+- `RoomLayout`: deterministic four-sided room-owned boundaries; Seeded sparse boundaries plus a mandatory exit chosen by each cell; shared boundaries honor either neighbor. Generated passages are 2×2 at offsets 2–13, aligned through both independently editable wall halves, with level-specific seeds. Every room has an exit; global connectivity is not promised. Sixteen levels on an eight-block grid, shared slabs, start floor Y=64, range Y=0–127. Walls leave 14×14 clear interior.
+- `RoomGenerator`: actual blocks, all 16 room levels per requested chunk and vanilla bedrock Y=0, no ores/structures/carvers. No generated light sources or emitting decorative panels. No skylight. Client lightmap colors are uniformly bright by default; darkness retains vanilla lighting. The server synchronizes this visual policy on login and changes, independently of actual block light/spawning.
+- `StructuralBlock.structural`: explicit provenance. Normal item placement is false; generator/restoration true. Explosion filtering applies only to protected states in this dimension. Normal blocks/entity damage remain unchanged. No fake-player ban. Structural states cannot be piston-moved.
+- `WorldState`: versioned overworld SavedData retaining reservations, reference, anchor, owner, both endpoints and independent last outside returns. Invalid existing data fails closed instead of silently reallocating factories. Candidate registry updates validate a complete new index before mutation; missing physical surfaces still reserve their saved positions.
+- `Portals`: cardinal 1×2 placements accepting vanilla `BlockState.canBeReplaced()` states without fluids/block entities with approach footprint in one chunk. Permanent pairs validate both endpoints. Instant recall validates only the new inner surface; the unchanged exterior is a return coordinate, not a placement prerequisite. Outside instant summons require a new exterior frame; the inner frame is optional because arrival resolves the independent anchor. Registry overlap is validated before world edits. Own retired/orphan portal surfaces are reclaimed independently of normal construction permissions; other registered pairs and nonportal construction are preserved. Nearby summons require line of sight, ignoring these replaceable states. Frame and approach clearing share the claim-aware atomic transaction. Personal pair lifetime is managed by persisted `InstantExpiry` state: 1,200 game ticks outside, refreshed on successful summon/use; inside residence prevents expiry, even offline. Dimension changes/respawn reconcile residence; unknown owners from saves without lifetime metadata are conservatively retained until login. At most one expired pair is retired per tick. Only loaded frames are removed immediately; unloaded orphan surfaces are retired on chunk reconciliation without generating chunks just for cleanup. Return history is retained. Permanent selection is inside first; consume core after successful linking. Personal access owner-only; permanent traversal public, removal owner/operator.
+- Traversal uses body overlap with the thin inset interior plane, via the block contact callback. Full-body containment and foot-height restrictions are removed; a falling player can activate an unsupported doorway. Personal entry checks/repairs and lands on the current anchor regardless of recalled inner endpoint, with zero arrival velocity. Permanent entry retains its fixed endpoint and rotation mapping. Exit does not inspect/repair anchors or require complete frame blocks. `ReturnTravel` checks dry, nonhazardous footing, collision and border; it searches eight horizontal/vertical blocks around the saved return plus local surface columns, then falls back to overworld spawn. An empty-space 3x3 stone platform is a last resort for spawn areas without footing; existing builds are never cleared. If even empty refuge space is unavailable, report the problem instead of crashing or teleporting into solid terrain. Mounted plane crossing remains excluded; direct F recovery dismounts. Per-player 15-tick bounce guard.
+- `WorldEdits`: build permission, break and placement events; staged block-only changes without notifications, full rollback on denial, notifications after acceptance. Never overwrite block entities.
+- `ToolItem`: distinct REMOVE and CREATE items; both air and block use submit a gaze-derived operation, with no mode state or RUN operation. Shift does not switch behavior. Localized tooltips describe purpose and aiming.
+- `PanelSelection`: shared client/server virtual shell intersection. Current room derives from feet coordinates and floor; six surfaces remain targetable without blocks. Removal may select the exposed immediate neighbor half only. No preview chunk loads. `StructuralPreview` renders the exact operation bounds with translucent fill and outline (green creation, orange removal), using normal depth testing.
+- `Anchors`: initial carpet at the reference arrival, entry support repair via normal protection events, one online-owner region ticket (level 31), immediate transfer/release on move/logout and cleanup on stop. Own home is checked before personal entry and on entry dimension-change events; leaving never depends on it.
+- `StructuralEditor`: level-aware bounded whole-panel queue, global budget, revalidation, no player-block removal or bulk drops. Removal refuses whole panels supporting any saved or physical anchor, including ceilings underneath another level. Floor/ceiling removal edits only 14×14 interiors; creation repairs the full 16×16 slab including perimeter supports. Creation fills solid walls including original openings. One click queues one surface, at most 256 blocks. Server derives selection from its player pose and revalidates the current room/adjacent-half boundary at commit; client coordinates are never accepted.
+- Surfaces/anchors have no ticking block entities. Only save version 4 is accepted. Chunk reconciliation repairs current facing/half states and removes orphan blocks/markers; incomplete saved pairs remain reserved, but their external coordinates remain usable for recovery. The additive `returns` list persists last outside entry/summon destinations independently of pair removal; saves without recorded history use the existing pair or spawn fallback.
+- Intent-only packets contain no client coordinates/owners. Instant requests coalesce with one generating request per tick. Two destination traversal checks per tick globally bound synchronous generation; overflow reports busy and requires re-crossing. Tools are rate-limited.
+
+See [stacked rooms and anchor loading](stacked-rooms-and-anchors.md) for generation trade-offs, geometry measurements and ticket scope.
+
+## Counterpart loading
+
+Every 20 ticks, read independent full-chunk ticket roots and their distance influence. A narrow access transformer exposes the pinned `DistanceManager.tickets` **read-only**. Exclude Elsebase mirror, UNKNOWN transient-read and POST_TELEPORT tickets. Standard player, spawn, forced and third-party tickets may count, including when coexisting with a mirror.
+
+Roots are bucketed in 32×32-chunk regions. Targets deduplicate under a global cap. Tickets expire and are explicitly removed after their independent roots disappear or server shutdown. Mirror-only chunks cannot propagate further loads. Radius-2 tickets can affect neighboring chunks; endpoint count is not total memory/chunk count. Recheck the access transformer on Minecraft upgrades. Nonstandard direct chunk manipulation by other mods is not certified.
+
+## Essential server configuration
+
+File: `config/elsebase-common.toml`, registered as NeoForge COMMON so **Mods → Elsebase → Config** is editable before opening a world. This is installation-wide rather than per-world configuration. Dedicated servers use their own file. `IConfigScreenFactory` uses the native `ConfigurationScreen`; a server-to-client payload makes multiplayer lighting authoritative and refreshes changed policy every 20 ticks.
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| portals.allowInstant | true | New outside summons; inside recall/old return retained when disabled. |
+| portals.excludedExternalDimensions | [] | Prohibit new entrances there; existing return retained. |
+| portals.maxPermanentPairsPerPlayer | 4 | Zero disables new pairs; old pairs remain. |
+| chunkloading.maxMirroredEndpointChunks | 256 | Zero disables proactive mirrors; bounded arrival remains available. |
+| structure.maxChangedBlocksPerTick | 1024 | Global; minimum 256, sufficient for an atomic 196-block ceiling. |
+| allocation.radius | 131072 | Frozen on first assignment. |
+| allocation.minimumSpacing | 8192 | Frozen, multiple of 16, minimum 256. |
+| world.allowNaturalMobSpawning | false | Natural/chunk-generation spawns; spawners/machines unaffected. |
+| world.darkness | false | Disable uniform visual brightness; normal block lighting remains. |
+
+Darkness changes need no regeneration. Generation changes require a new world for consistency, otherwise mixed-generation artifacts are accepted. Frozen allocation edits reject new assignments rather than relocating old bases. No unused preview/audio settings.
+
+## Resource packs and datapacks
+
+Seven functional vanilla-texture themes include trimmed panels, framed lights and open doorway models; these are not literal reproductions of concept art. Tools/core have distinct copper/turquoise 3D models; removal has a bar head and creation a plus head. Quiet Workshop is base, six optional packs under `resourcepacks/`. Only one appearance per pack is needed. No custom ambient audio. Floor models use the ceiling texture underneath shared slabs.
+
+For a third-party skin, copy an optional pack's layout and `pack.mcmeta` (resource format 34). Override `assets/elsebase/models/block/{floor,border,wall,ceiling,light}.json` with texture references or custom models/textures. Portal models are `portal_lower.json` and `portal_upper.json`, selected by `facing` and `half`. They have theme-specific trim and a two-sided translucent center using vanilla's animated `minecraft:block/nether_portal` sprite. The `surface` texture reference can be replaced by a skin. This is a visible fallback surface, not a destination preview. Portal/anchor models and text are also replaceable. Collision/emitted light remain server rules; avoid emissive full-bright models for dark packs. Distribute the pack to clients.
+
+Recipes: `data/elsebase/recipe/`; loot/tags are standard datapack resources. A custom data-driven layout/palette generation API is not included. Generate checked-in JSON resources and the test fixture with `node tools/generate-resources.mjs`.
+
+## Verification boundary
+
+`build` runs production domain tests for allocation, spacing, collisions, exhaustion, negative coordinates, exact door size, offset variation, boundary frequency, guaranteed exits on every level and dead ends, bedrock and lighting. Minecraft GameTests exercise generation, actual selective explosions, saved registry/index round trips, crossing/recall/anchor behavior, claim rollback, mirror non-propagation, darkness/spawn policy and tool workflows. Execution results belong in [development](development.md).
+
+GameTestServer bypasses normal dimension merging by hardcoding the flat preset. Only the GameTest launch enables a preset containing the real Elsebase dimension, in isolated `build/gametest-v4`. Test batches reset their own fixture registry; regular servers/clients never enable this pack.
+
+Still requires interactive/modpack checks: all theme appearances, shader/performance-mod combinations, specific claims/automation mods and 100-player performance. Static animated portal surfaces are intentional. Live previews, final custom artwork/logo exports and custom ambience remain follow-up work.

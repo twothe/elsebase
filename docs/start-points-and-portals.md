@@ -1,6 +1,6 @@
 # Start-point allocation and portal design
 
-Status: design analysis, 2026-09-19. No gameplay implementation authorized.
+Status: historical design analysis, 2026-09-19. Implementation was authorized on 2026-09-20; the first build uses reserved slots with radius 131072 and spacing 8192, persisted instant pairs and free valid placement. See [implementation](implementation.md) for current behavior and [development](development.md) for executed tests.
 The latest user requirements override conflicting proposals in the original specification. Recommendations below are not selected defaults until the user agrees.
 
 ## Confirmed requirements

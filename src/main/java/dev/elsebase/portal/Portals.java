@@ -45,9 +45,14 @@ public final class Portals {
     }
     /** Executes a validated summon on the server thread; external requests must use the rate-limited queue. */
     public static void summon(ServerPlayer player) {
+        // Check on execution, not only enqueue: a player may be attacked while waiting in the queue.
+        if (CombatLock.blocked(player)) { message(player, "elsebase.message.combat_lock"); return; }
         var state = WorldState.get(player.server);
         PortalPair old = state.instant(player.getUUID());
         boolean inside = player.level().dimension().equals(Elsebase.DIMENSION);
+        if (inside && Settings.REQUIRE_KNOWN_RETURN.get() && old == null && !state.returns.containsKey(player.getUUID())) {
+            message(player, "elsebase.message.no_known_return"); return;
+        }
         if (inside && (old == null || player.isSpectator() || !player.mayBuild())) { escape(player,old); return; }
         if (player.isSpectator() || !player.mayBuild()) return;
         if (!inside && (!Settings.INSTANT.get() || excluded(player.serverLevel()))) {
@@ -59,7 +64,7 @@ public final class Portals {
             else message(player, "elsebase.message.no_free_1x2_doorway_nearby");
             return;
         }
-        if (!inside && !Anchors.ensure(player)) { message(player, "elsebase.message.reference_floor_or_marker_is_obstructed_or_protected"); return; }
+        if (!inside) Anchors.ensure(player); // Prepare normally; actual entry resolves obstruction recovery.
         Endpoint inner = inside ? near : state.home(player.server, player.getUUID()).reference();
         Endpoint external = inside ? old.external() : near;
         PortalPair next = new PortalPair(old == null ? UUID.randomUUID() : old.id(), player.getUUID(), false, inner, external);
@@ -280,8 +285,8 @@ public final class Portals {
         }
         if (!complete(player.server,source)) { blocked(player,now); return; }
         if (!pair.permanent()) {
-            if (!Anchors.ensure(player)) { blocked(player,now); return; }
-            exit = Vec3.atBottomCenterOf(data.home(player.server,player.getUUID()).anchor());
+            exit = AnchorArrival.resolve(player);
+            if (exit == null) { blocked(player,now); return; }
         } else {
             destination.getChunkAt(target.position());
             if (!complete(player.server,target)) { blocked(player,now); return; }

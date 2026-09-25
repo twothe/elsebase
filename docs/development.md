@@ -1,5 +1,31 @@
 # Development and verification
 
+## First-login theme readiness — unreleased 1.1.0
+
+The ordinary fresh-world run passed both with and without Sodium; the race required controlling delivery order to reproduce reliably. The expanded template fixture withholds only the first starter-column appearance packet until Sodium is about to upload its initial unthemed mesh, then delivers the actual packet and processes the production rebuild queue while the section is still unbuilt. The original implementation failed the visible-pixel assertion with **zero red pixels**, despite all client definitions and the column assignment being present. The corrected queue produced **102,318 red pixels** under the same ordering. Before/after screenshots were visually inspected. See [appearance delivery](surface-templates.md#appearance-delivery-during-travel) for the exact source/API trace and bounded scheduling contract.
+
+Do not overlap Gradle development launches/compilation in this checkout. An initial combined verification overlapped another client's compilation and failed with `ClassNotFoundException: TemplateServer`; the class was rewritten one second after the running GameTest JVM tried to load it. Isolated world directories do not isolate the shared exploded class output. Subsequent verification must run sequentially.
+
+Final verification: `build` (domain checks, all eight catalogs and fixture-free release packaging) and all **29 GameTests** passed sequentially. All three actual-client template profiles passed: vanilla, Sodium 0.6.13/Iris 1.8.12 without shaders, and the same pair with the authored active shaderpack. Checks cover direct first login, deterministic late-theme ordering in Sodium, actual pixels, live overwrites, slab face independence, dimension reentry and tool menus. Audio stayed muted and the cursor remained free. This verifies the installed compatibility fixtures, not arbitrary third-party shaderpacks or every Sodium release.
+
+The packaged 1.1.0 JAR also passed both dedicated-server launches, world save/reload and clean shutdown. World/template formats and the unreleased version number remain unchanged; existing worlds need no regeneration.
+
+## Blocked anchor recovery — unreleased 1.1.0
+
+The regression test first failed on the original outside summon gate (`Occupied marker must not prevent an outside summon`). After introducing shared `AnchorArrival`, `build` and all **29 GameTests** passed. New coverage exercises actual portal entry around an occupied marker, preservation of nearby obstructions, unchanged saved anchor, head-only and crouched-entry standing clearance, a completely sealed search area, three-block emergency clearing, claim denial with full chest inventory rollback, foreign saved anchor protection, unchanged adjacent construction and absence of duplicate inventory drops. Normal structural block-entity exclusion is also asserted.
+
+The first combined run exposed test contention on the production two-arrivals-per-tick cap: the new traversal fixture now runs at tick 10, separate from existing traversal fixtures at ticks 0 and 5. No runtime traffic limit was weakened. The owner explicitly froze version 1.1.0; world/template formats remain unchanged.
+
+The final packaged JAR also passed both dedicated-server startup/save/reload/shutdown checks. All eight locale catalogs passed the build's verification. No configuration controls or client renderer changed in this fix, so the graphical config/render fixtures were not rerun. Third-party protection callbacks and unusual modded block-removal side effects still require pack-specific testing.
+
+## 1.1.0 portal policies — 2026-09-24
+
+`build` (domain checks, all eight localization catalogs and packaged-JAR verification) and all **27 GameTests** passed after the final respawn-support refinement. The new tests cover attack classification, queued summon denial, expiration without fire/poison refresh, disabled lock, logout state retention, Backdoor login, repeated login, independent known-return policy, outside summons, saved returns without a pair, missing respawn recovery, valid alternate spawn preservation and support repair even for a nominally valid forced spawn.
+
+`tools/check-config.ps1` passed with the new native controls: translated delay label, both toggles and persisted TOML values, plus the existing German/Chinese theme-selector checks. Captures `config-portals-de.png` and `config-start-de.png` were visually reviewed. Native narrow labels use ellipsis with full help on hover. The client remained silent with a free cursor. Gameplay events use embedded GameTest connections; a complete multiplayer modpack and third-party damage attribution remain integration limits.
+
+`tools/check-release-jar.py` passed both dedicated launches with **Elsebase 1.1.0**, clean world save/reload and shutdown, using the final packaged artifact. World format 4 and theme format 2 remain unchanged. See [policy semantics and configuration](portal-policies.md).
+
 Release 1.0.0 verification: `build` (including domain tests and release-JAR checks), all 25 GameTests, and two packaged-JAR dedicated-server launches with save/reload and clean shutdown passed. The release retains world format 4 and theme format 2. Graphical vanilla/Iris results from the preceding audit remain applicable; they were not rerun for the version promotion.
 
 Pre-release audit and repeatable artifact checks: [release readiness](release-readiness.md). `build` now verifies the packaged JAR, excluding development fixtures and checking generated language encoding.

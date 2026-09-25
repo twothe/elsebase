@@ -184,5 +184,15 @@
   "elsebase.ui.floor": "Suelo",
   "elsebase.ui.ceiling": "Techo",
   "elsebase.ui.blocked_material": "Material bloqueado por este servidor.",
-  "elsebase.ui.invalid_material": "Usa un cubo opaco completo sin entidad de bloque ni fluido."
+  "elsebase.ui.invalid_material": "Usa un cubo opaco completo sin entidad de bloque ni fluido.",
+  "elsebase.configuration.combatLockSeconds": "Espera del portal tras un ataque (segundos)",
+  "elsebase.configuration.combatLockSeconds.tooltip": "Bloquea la invocación y la llamada tras recibir un ataque. El daño por fuego y veneno no prolonga la espera. Los portales existentes siguen disponibles. 0 desactiva la espera.",
+  "elsebase.configuration.requireKnownReturn": "Exigir un destino exterior conocido",
+  "elsebase.configuration.requireKnownReturn.tooltip": "Impide abrir portales instantáneos dentro de Backdoor si no hay un destino exterior guardado. Los destinos conocidos conservan el regreso de emergencia.",
+  "elsebase.configuration.startInBackdoor": "Iniciar a los nuevos jugadores en Backdoor",
+  "elsebase.configuration.startInBackdoor.tooltip": "Los nuevos jugadores empiezan en su ancla personal y reaparecen allí si falta su punto de reaparición elegido. Los jugadores existentes y las conexiones posteriores conservan su ubicación.",
+  "elsebase.message.combat_lock": "Acabas de recibir un ataque. Espera un poco antes de invocar tu portal.",
+  "elsebase.message.no_known_return": "No se conoce ningún destino exterior. Abre primero un portal instantáneo fuera de Backdoor.",
+  "elsebase.message.backdoor_start_blocked": "Tu punto de inicio en Backdoor está bloqueado. Pide a un administrador que despeje tu marcador y su suelo; después vuelve a conectarte.",
+  "elsebase.message.spawn_area_cleared": "Se ha despejado tu punto de aparición bloqueado para permitir la entrada de emergencia."
 }

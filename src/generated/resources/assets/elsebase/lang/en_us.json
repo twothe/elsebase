@@ -184,5 +184,15 @@
   "elsebase.ui.floor": "Floor",
   "elsebase.ui.ceiling": "Ceiling",
   "elsebase.ui.blocked_material": "Material is blocked by this server.",
-  "elsebase.ui.invalid_material": "Use an opaque full cube without a block entity or fluid."
+  "elsebase.ui.invalid_material": "Use an opaque full cube without a block entity or fluid.",
+  "elsebase.configuration.combatLockSeconds": "Portal delay after attacks (seconds)",
+  "elsebase.configuration.combatLockSeconds.tooltip": "Blocks instant summon/recall after an incoming attack. Fire and poison ticks do not extend it. Existing portals remain usable. 0 disables the delay.",
+  "elsebase.configuration.requireKnownReturn": "Require a known outside destination",
+  "elsebase.configuration.requireKnownReturn.tooltip": "Refuses instant portals inside the Backdoor if no outside destination is saved. Known return destinations retain emergency recovery.",
+  "elsebase.configuration.startInBackdoor": "Start new players in the Backdoor",
+  "elsebase.configuration.startInBackdoor.tooltip": "New players start at their personal anchor and respawn there if their chosen respawn point is missing. Existing players and later logins keep their location.",
+  "elsebase.message.combat_lock": "You were just attacked. Wait briefly before summoning your portal.",
+  "elsebase.message.no_known_return": "No outside destination is known. Open an instant portal outside the Backdoor first.",
+  "elsebase.message.backdoor_start_blocked": "Your Backdoor spawn is blocked. Ask an administrator to clear your spawn marker and its floor, then reconnect.",
+  "elsebase.message.spawn_area_cleared": "Your blocked spawn area was cleared for emergency entry."
 }

@@ -3,9 +3,11 @@
 ## Behaviour
 
 - Tool usability, stacked rooms and anchor loading/safety are authorized and implemented; see `docs/stacked-rooms-and-anchors.md`.
-- Current phase: 1.0.0 release, explicitly authorized on 2026-09-21; the user publishes the artifact on CurseForge. Follow confirmed discussion decisions and `docs/surface-templates.md` over conflicting original proposals.
+- Current phase: 1.1.0 update, explicitly authorized on 2026-09-24; the user publishes the artifact on CurseForge. Follow confirmed discussion decisions and `docs/surface-templates.md` over conflicting original proposals.
 - Communicate in German. Code, identifiers and technical documentation use English, following the original specification.
-- Keep version 1.0.0 until the owner publishes it; the owner confirmed the release has not been uploaded yet.
+- Keep version 1.1.0 until further notice: the owner confirmed it is still unreleased after the blocked-arrival report.
+- Personal arrival uses `AnchorArrival`: exact anchor, bounded nearby standing space, then explicit last-resort clearing of only the owner's marker/headroom/support. Never gate outside summons on exact marker clearance. Passive login/dimension preparation stays non-destructive. Emergency edits still honor claims and foreign registered anchors/portals; rollback must restore block-entity contents without duplicate drops.
+- Attack lock delays instant summons/recalls, not existing portal traversal; periodic fire/poison damage must not renew it. Skyblock options are independent: first-join Backdoor start and refusal of unknown outside returns. Existing home reservations are returning players; never teleport them on every login. See `docs/portal-policies.md`.
 - Keep all eight catalogs in `tools/lang/` synchronized for interface changes; generate with `node tools/generate-localizations.mjs`. Never fill untranslated keys with English. Run `verifyLocalizations` and the silent/free-cursor `tools/check-config.ps1` after configuration UI changes. Preserve theme IDs and user-authored names; translate built-in display names by ID.
 - Preserve `docs/backroom-industry-design.md` as the original input. Record open questions and agreed changes separately until the design is approved.
 - Target Minecraft 1.21.1, NeoForge and Java 21. Use the checked-in Gradle wrapper and pinned versions.
@@ -23,6 +25,7 @@
 - The user selected Elsebase and the first logo direction, The doorway beyond (Die Tür ins Anderswo). The square platform PNG is available in `docs/branding/`; an editable vector master remains unfinished. Subsequent implementation authorization covers the current Elsebase technical identity.
 - Run `build` (includes domain tests) and `runGameTestServer` after gameplay changes. GameTests use isolated `build/gametest-themes-v2`; their flat-preset fixture is test-only. Vanilla's mock-server-player helper always reports creative; use a real server player fixture when testing survival costs.
 - Automated graphical tests must leave the desktop cursor free and stay silent from startup. Test-only mixins provide runtime overrides without changing normal controls or saved audio settings.
+- Run Gradle build/client/GameTest launches sequentially: development JVMs load shared `build/classes` lazily, and another compile can temporarily remove classes underneath a running fixture.
 - Preserve allocator reservations on load failures. Vanilla SavedData loading swallows exceptions; never silently replace a corrupt existing registry. Validate index mutations before touching the live map.
 - Release 1.0.0 establishes world save format 4 and template format 2 as the supported baseline. Preserve released-world compatibility in subsequent updates; format changes require an explicit migration or upgrade policy. Earlier incompatible development formats have no migration. Never silently reset or delete saved worlds.
 
@@ -57,6 +60,7 @@ Elsebase implements a permanent workspace dimension with chunk-aligned rooms, re
 - [Naming discussion](docs/naming-and-logo.md): selected Elsebase name, earlier shortlist, research and discarded directions.
 - [Elsebase logo proposals](docs/elsebase-logo-proposals.md): selected doorway direction, alternative studies, images and production provenance.
 - [Platform logo](docs/branding/README.md): square PNG for CurseForge and GitHub, with generation provenance.
+- [Portal and starting policies](docs/portal-policies.md): 1.1.0 attack lock, first-join/respawn behavior and independent known-return restriction.
 
 ## Glossary
 
@@ -87,4 +91,5 @@ Elsebase implements a permanent workspace dimension with chunk-aligned rooms, re
 - Portal placement requires only the 1x2 body. Half cleanup must respect WorldEdits staging/rollback; never delete the counterpart unconditionally in onRemove. Initialize client appearance policy at level creation and requeue cached styles when destination chunks arrive.
 
 - Saved collection/coordinate reads must reject missing or wrongly typed NBT; never interpret damaged saved registries as empty. New preview subscriptions and chunk watches must renew appearance delivery even if earlier packets were already sent.
+- Theme rebuilds must wait for `LevelRenderer.isSectionCompiled`, not merely installed chunks: Sodium ignores rebuilds before the first mesh upload. Preserve pending work with bounded, fair readiness checks. The template fixture reproduces late first-login appearance delivery before upload; keep that regression in the Sodium profiles.
 - `build` includes `verifyReleaseJar`: development fixtures must stay out of the distributed artifact. Run `tools/check-release-jar.py` after build/GameTests to verify packaged dedicated-server startup, save and restart.

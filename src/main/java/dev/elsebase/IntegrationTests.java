@@ -73,6 +73,116 @@ public final class IntegrationTests {
         return tickets != null && tickets.stream().anyMatch(t -> t.getType() == MirrorLoading.MIRROR);
     }
 
+    @GameTest(template = "empty", templateNamespace = Elsebase.ID, timeoutTicks = 240)
+    public static void attackLockAndQueuedSummon(GameTestHelper helper) {
+        var player = helper.makeMockServerPlayerInLevel();
+        var level = helper.getLevel();
+        var attacker = net.minecraft.world.entity.EntityType.ZOMBIE.create(level);
+        var data = WorldState.get(player.server);
+        int seconds = Settings.COMBAT_LOCK_SECONDS.get();
+        try {
+            Settings.COMBAT_LOCK_SECONDS.set(3);
+            incoming(player, level.damageSources().onFire());
+            incoming(player, level.damageSources().magic());
+            incoming(player, level.damageSources().wither());
+            incoming(player, level.damageSources().fall());
+            helper.assertTrue(!CombatLock.blocked(player), "Fire, poison, wither and falls are not attacks");
+            Portals.request(player);
+            incoming(player, level.damageSources().mobAttack(attacker));
+            helper.assertTrue(CombatLock.blocked(player), "Incoming mob attack starts the lock before mitigation");
+            Portals.tick();
+            helper.assertTrue(data.instant(player.getUUID()) == null, "Attack after enqueue prevents summon on execution");
+            Settings.COMBAT_LOCK_SECONDS.set(0);
+            helper.assertTrue(!CombatLock.blocked(player), "Zero disables the lock immediately");
+            Settings.COMBAT_LOCK_SECONDS.set(3);
+            Portals.logout(player.getUUID());
+            helper.assertTrue(CombatLock.blocked(player), "Logout does not clear the player's attack stamp");
+            var arrow = net.minecraft.world.entity.EntityType.ARROW.create(level);
+            incoming(player, level.damageSources().arrow(arrow, attacker));
+            helper.assertTrue(CombatLock.blocked(player), "Owned projectile attacks lock summoning");
+        } finally { Settings.COMBAT_LOCK_SECONDS.set(seconds); }
+        helper.runAfterDelay(30, () -> {
+            incoming(player, level.damageSources().onFire()); incoming(player, level.damageSources().magic());
+            helper.assertTrue(CombatLock.blocked(player), "Original attack still blocks at 1.5 seconds");
+        });
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(!CombatLock.blocked(player), "Lock expires after three seconds; periodic damage did not renew it");
+            player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed"));
+        });
+        helper.runAfterDelay(100, helper::succeed);
+    }
+
+    private static void incoming(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.damagesource.DamageSource source) {
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(new net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent(
+                player, new net.neoforged.neoforge.common.damagesource.DamageContainer(source, 2)));
+    }
+
+    @GameTest(template = "empty", templateNamespace = Elsebase.ID, timeoutTicks = 400)
+    public static void backdoorStartAndKnownReturnPolicy(GameTestHelper helper) {
+        boolean start = Settings.START_IN_BACKDOOR.get(), requireReturn = Settings.REQUIRE_KNOWN_RETURN.get();
+        net.minecraft.server.level.ServerPlayer player = null;
+        try {
+            Settings.START_IN_BACKDOOR.set(true); Settings.REQUIRE_KNOWN_RETURN.set(true);
+            // Login event must run before the first home reservation, just as in the real player list.
+            player = helper.makeMockServerPlayerInLevel();
+            var data = WorldState.get(player.server);
+            var home = data.home(player.server, player.getUUID());
+            var inner = player.server.getLevel(Elsebase.DIMENSION);
+            helper.assertTrue(player.serverLevel() == inner && player.blockPosition().equals(home.anchor()), "First login starts at personal anchor");
+            helper.assertTrue(player.getRespawnDimension().equals(Elsebase.DIMENSION), "Starter respawn remains in Backdoor");
+            helper.assertTrue(!data.returns.containsKey(player.getUUID()) && data.instant(player.getUUID()) == null, "Startup does not invent an outside return or portal");
+            Portals.summon(player);
+            helper.assertTrue(player.serverLevel() == inner && data.instant(player.getUUID()) == null, "Unknown return is refused inside");
+            Settings.START_IN_BACKDOOR.set(false);
+            Portals.summon(player);
+            helper.assertTrue(player.serverLevel() == inner, "Known-return restriction is independent of starting policy");
+            Settings.REQUIRE_KNOWN_RETURN.set(false);
+            Portals.summon(player);
+            helper.assertTrue(player.serverLevel() == player.server.overworld(), "Default setting retains emergency world-spawn escape");
+            Settings.START_IN_BACKDOOR.set(true); Settings.REQUIRE_KNOWN_RETURN.set(true);
+            var before = player.position();
+            new ServerEvents().login(new net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent(player));
+            helper.assertTrue(player.serverLevel() == player.server.overworld() && player.position().equals(before), "Repeated login does not pull a starter back inside");
+            var spawn = net.minecraft.core.BlockPos.containing(before);
+            for (int x=-5;x<=5;x++) for (int z=-5;z<=5;z++) {
+                var pos=spawn.offset(x,0,z);
+                player.serverLevel().setBlockAndUpdate(pos.below(),Blocks.STONE.defaultBlockState());
+                for(int y=0;y<3;y++) player.serverLevel().setBlockAndUpdate(pos.above(y),Blocks.AIR.defaultBlockState());
+            }
+            Portals.summon(player);
+            var pair = data.instant(player.getUUID());
+            helper.assertTrue(pair != null && data.returns.containsKey(player.getUUID()), "Outside instant portals remain available with both switches enabled");
+            data.remove(pair.id());
+            player.teleportTo(inner,home.anchor().getX()+0.5,home.anchor().getY(),home.anchor().getZ()+0.5,0,0);
+            Portals.summon(player);
+            helper.assertTrue(player.serverLevel() == player.server.overworld(), "Remembered return works even without a registered pair");
+            inner.removeBlock(home.anchor().below(),false);
+            var event = new net.neoforged.neoforge.event.entity.player.PlayerRespawnPositionEvent(player,
+                    net.minecraft.world.level.portal.DimensionTransition.missingRespawnBlock(player.server.overworld(),player,
+                            net.minecraft.world.level.portal.DimensionTransition.DO_NOTHING),false);
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(event);
+            helper.assertTrue(event.getDimensionTransition().newLevel() == inner && event.copyOriginalSpawnPosition(), "Missing starter respawn recovers to Backdoor");
+            helper.assertTrue(inner.getBlockState(home.anchor().below()).isFaceSturdy(inner,home.anchor().below(),Direction.UP), "Respawn repairs anchor support");
+            var valid = new net.minecraft.world.level.portal.DimensionTransition(player.server.overworld(),before,
+                    net.minecraft.world.phys.Vec3.ZERO,0,0,net.minecraft.world.level.portal.DimensionTransition.DO_NOTHING);
+            player.setRespawnPosition(Level.OVERWORLD,spawn,0,true,false);
+            var bedEvent = new net.neoforged.neoforge.event.entity.player.PlayerRespawnPositionEvent(player,valid,false);
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(bedEvent);
+            helper.assertTrue(bedEvent.getDimensionTransition() == valid, "Valid chosen outside respawns are respected");
+            player.setRespawnPosition(Elsebase.DIMENSION,home.anchor(),0,true,false);
+            inner.removeBlock(home.anchor().below(),false);
+            var anchorEvent = new net.neoforged.neoforge.event.entity.player.PlayerRespawnPositionEvent(player,
+                    new net.minecraft.world.level.portal.DimensionTransition(inner,net.minecraft.world.phys.Vec3.atBottomCenterOf(home.anchor()),
+                            net.minecraft.world.phys.Vec3.ZERO,0,0,net.minecraft.world.level.portal.DimensionTransition.DO_NOTHING),false);
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(anchorEvent);
+            helper.assertTrue(inner.getBlockState(home.anchor().below()).isFaceSturdy(inner,home.anchor().below(),Direction.UP), "Valid forced anchor spawn still repairs missing support");
+        } finally {
+            Settings.START_IN_BACKDOOR.set(start); Settings.REQUIRE_KNOWN_RETURN.set(requireReturn);
+            if (player != null) player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed"));
+        }
+        helper.runAfterDelay(40,helper::succeed);
+    }
+
     @SuppressWarnings("removal")
     @GameTest(template = "empty", templateNamespace = Elsebase.ID, timeoutTicks = 400)
     public static void permanentPortalsAndPanels(GameTestHelper helper) {
@@ -448,6 +558,90 @@ public final class IntegrationTests {
         player.setPos(endpoint.center().subtract(normal.scale(0.2)));
         player.xo = before.x; player.yo = before.y; player.zo = before.z;
         Portals.cross(player,endpoint.position());
+    }
+
+    @GameTest(template = "empty", templateNamespace = Elsebase.ID, timeoutTicks = 400)
+    public static void obstructedPersonalArrival(GameTestHelper helper) {
+        // Other traversal fixtures use ticks 0 and 5; retain the production two-arrivals-per-tick budget.
+        helper.runAfterDelay(10, () -> {
+        var player = helper.makeMockServerPlayerInLevel();
+        var outside = helper.getLevel();
+        var inside = player.server.getLevel(Elsebase.DIMENSION);
+        var data = WorldState.get(player.server);
+        var marker = data.home(player.server,player.getUUID()).anchor();
+        try {
+            for (int x=0;x<10;x++) for(int z=0;z<10;z++) {
+                outside.setBlockAndUpdate(new BlockPos(1500+x,149,1500+z),Blocks.STONE.defaultBlockState());
+                for(int y=150;y<154;y++) outside.setBlockAndUpdate(new BlockPos(1500+x,y,1500+z),Blocks.AIR.defaultBlockState());
+            }
+            inside.setBlockAndUpdate(marker,Blocks.STONE.defaultBlockState());
+            inside.setBlockAndUpdate(marker.above(),Blocks.STONE.defaultBlockState());
+            player.teleportTo(outside,1504.5,150,1504.5,0,0);
+            Portals.summon(player);
+            var pair = data.instant(player.getUUID());
+            helper.assertTrue(pair != null,"Occupied marker must not prevent an outside summon");
+            simulateCross(player,pair.external());
+            helper.assertTrue(player.serverLevel()==inside,"Occupied marker permits personal portal entry");
+            helper.assertTrue(player.position().distanceTo(net.minecraft.world.phys.Vec3.atBottomCenterOf(marker))<=12
+                    && ReturnTravel.safe(player,inside,player.position()),"Entry finds safe nearby footing");
+            helper.assertTrue(inside.getBlockState(marker).is(Blocks.STONE) && inside.getBlockState(marker.above()).is(Blocks.STONE),"Nearby landing preserves obstructions");
+            helper.assertTrue(data.home(player.server,player.getUUID()).anchor().equals(marker),"Recovery never relocates the saved anchor");
+            // Move away so the connected player's current body cannot obstruct the preferred destination.
+            player.teleportTo(outside,1504.5,150,1504.5,0,0);
+            inside.setBlockAndUpdate(marker,Content.ANCHOR.get().defaultBlockState());
+            var headOnly = AnchorArrival.resolve(player);
+            helper.assertTrue(headOnly!=null && !BlockPos.containing(headOnly).equals(marker)
+                    && inside.getBlockState(marker.above()).is(Blocks.STONE),"Head-only obstruction also uses nearby space without clearing");
+            inside.setBlockAndUpdate(marker.above(),Blocks.OAK_SLAB.defaultBlockState().setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE,net.minecraft.world.level.block.state.properties.SlabType.TOP));
+            player.setPose(net.minecraft.world.entity.Pose.CROUCHING);
+            var standing = AnchorArrival.resolve(player);
+            helper.assertTrue(standing!=null && !BlockPos.containing(standing).equals(marker) && ReturnTravel.safeStanding(player,inside,standing),"Crouched entry still reserves standing headroom");
+            player.setPose(net.minecraft.world.entity.Pose.STANDING);
+        } finally { player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed")); }
+        helper.runAfterDelay(40,helper::succeed);
+        });
+    }
+
+    @GameTest(template = "empty", templateNamespace = Elsebase.ID, timeoutTicks = 400)
+    public static void emergencyAnchorClearanceAndRollback(GameTestHelper helper) {
+        var player = helper.makeMockServerPlayerInLevel();
+        var level = player.server.getLevel(Elsebase.DIMENSION);
+        var data = WorldState.get(player.server);
+        var home = data.home(player.server,player.getUUID());
+        var marker = home.anchor();
+        try {
+            // Seal every candidate within the bounded search, including support and headroom.
+            for (var pos : BlockPos.betweenClosed(marker.offset(-8,-3,-8),marker.offset(8,4,8)))
+                level.setBlockAndUpdate(pos,Blocks.STONE.defaultBlockState());
+            level.setBlockAndUpdate(marker.below(),Blocks.CHEST.defaultBlockState());
+            level.setBlockAndUpdate(marker,Blocks.CHEST.defaultBlockState());
+            ((net.minecraft.world.level.block.entity.ChestBlockEntity)level.getBlockEntity(marker)).setItem(0,new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND,7));
+            ((net.minecraft.world.level.block.entity.ChestBlockEntity)level.getBlockEntity(marker.below())).setItem(0,new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.EMERALD,3));
+            helper.assertTrue(!WorldEdits.apply(player,List.of(new WorldEdits.Change(level,marker,level.getBlockState(marker),Blocks.AIR.defaultBlockState()))),"Ordinary edits still preserve block entities");
+            java.util.function.Consumer<net.neoforged.neoforge.event.level.BlockEvent.EntityPlaceEvent> deny = event -> {
+                if(event.getLevel()==level && event.getPos().equals(marker)) event.setCanceled(true);
+            };
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(deny);
+            try {
+                helper.assertTrue(AnchorArrival.resolve(player)==null,"Claim veto prevents emergency clearance");
+                helper.assertTrue(level.getBlockState(marker).is(Blocks.CHEST) && level.getBlockState(marker.below()).is(Blocks.CHEST)
+                        && level.getBlockState(marker.above()).is(Blocks.STONE),"Denied clearance rolls back all three states");
+                helper.assertTrue(((net.minecraft.world.level.block.entity.ChestBlockEntity)level.getBlockEntity(marker)).getItem(0).getCount()==7
+                        && ((net.minecraft.world.level.block.entity.ChestBlockEntity)level.getBlockEntity(marker.below())).getItem(0).getCount()==3,"Denied clearance restores both inventories");
+            } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(deny); }
+            var foreign = UUID.randomUUID();
+            data.homes.put(foreign,new WorldState.Home(home.slot(),home.reference(),marker.above()));
+            try { helper.assertTrue(AnchorArrival.resolve(player)==null && level.getBlockState(marker).is(Blocks.CHEST),"Foreign saved anchor blocks destructive recovery"); }
+            finally { data.homes.remove(foreign); }
+            var landing = AnchorArrival.resolve(player);
+            helper.assertTrue(landing!=null && BlockPos.containing(landing).equals(marker) && ReturnTravel.safeStanding(player,level,landing),"Fully sealed anchor receives a safe emergency landing");
+            helper.assertTrue(level.getBlockState(marker).is(Content.ANCHOR.get()) && level.getBlockState(marker.above()).isAir()
+                    && level.getBlockState(marker.below()).is(Content.FLOOR.get()),"Only anchor, headroom and support are repaired");
+            helper.assertTrue(level.getBlockState(marker.east()).is(Blocks.STONE) && level.getBlockState(marker.above(2)).is(Blocks.STONE),"Adjacent construction stays intact");
+            helper.assertTrue(level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,new net.minecraft.world.phys.AABB(marker).inflate(3)).isEmpty(),"Recovery/rollback never duplicates inventory drops");
+            helper.assertTrue(data.home(player.server,player.getUUID()).equals(home),"Emergency repair preserves saved reference and anchor");
+        } finally { player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed")); }
+        helper.runAfterDelay(40,helper::succeed);
     }
 
     @SuppressWarnings("removal")

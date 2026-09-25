@@ -184,5 +184,15 @@
   "elsebase.ui.floor": "地板",
   "elsebase.ui.ceiling": "天花板",
   "elsebase.ui.blocked_material": "服务器禁止此材质。",
-  "elsebase.ui.invalid_material": "请使用不含方块实体或流体的不透明完整方块。"
+  "elsebase.ui.invalid_material": "请使用不含方块实体或流体的不透明完整方块。",
+  "elsebase.configuration.combatLockSeconds": "受攻击后的传送门冷却（秒）",
+  "elsebase.configuration.combatLockSeconds.tooltip": "受到攻击后，暂时禁止召唤或召回即时传送门。持续燃烧和中毒伤害不会延长冷却。已有传送门仍可使用。设为 0 可禁用冷却。",
+  "elsebase.configuration.requireKnownReturn": "必须有已知的外部目的地",
+  "elsebase.configuration.requireKnownReturn.tooltip": "如果没有保存外部目的地，则禁止在 Backdoor 内召唤即时传送门。已知目的地仍可使用紧急返回功能。",
+  "elsebase.configuration.startInBackdoor": "让新玩家在 Backdoor 开始游戏",
+  "elsebase.configuration.startInBackdoor.tooltip": "新玩家在个人锚点处开始游戏；若选定的重生点失效，也会回到这里重生。已有玩家和之后重新登录的玩家将保留原位置。",
+  "elsebase.message.combat_lock": "你刚刚受到攻击。请稍等片刻再召唤传送门。",
+  "elsebase.message.no_known_return": "没有已知的外部目的地。请先在 Backdoor 外打开一次即时传送门。",
+  "elsebase.message.backdoor_start_blocked": "你的 Backdoor 出生点被阻挡。请管理员清理出生标记及其下方的地板，然后重新连接。",
+  "elsebase.message.spawn_area_cleared": "已清理被阻挡的出生区域，以便紧急进入。"
 }

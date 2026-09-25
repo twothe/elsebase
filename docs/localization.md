@@ -1,6 +1,6 @@
 # Localization and the configuration theme selector
 
-Version remains **1.0.0**: the owner has not published the first release yet. Save formats, registry IDs, theme IDs and enum names are unchanged.
+The localization baseline was introduced in **1.0.0** and includes the new gameplay policies in **1.1.0**. Save formats, registry IDs, theme IDs and enum names are unchanged.
 
 ## Languages and scope
 

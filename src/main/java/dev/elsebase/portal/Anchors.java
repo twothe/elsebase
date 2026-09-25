@@ -13,7 +13,7 @@ public final class Anchors {
     private static final Map<UUID, Loaded> ACTIVE = new HashMap<>();
     private Anchors() {}
 
-    /** Repairs only replaceable support; machines and protected construction must never be overwritten. */
+    /** Passive preparation repairs only replaceable support; actual travel uses AnchorArrival for obstruction recovery. */
     public static boolean ensure(ServerPlayer player) {
         var level = player.server.getLevel(Elsebase.DIMENSION);
         if (level == null) return false;

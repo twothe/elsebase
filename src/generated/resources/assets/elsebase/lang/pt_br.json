@@ -184,5 +184,15 @@
   "elsebase.ui.floor": "Piso",
   "elsebase.ui.ceiling": "Teto",
   "elsebase.ui.blocked_material": "Material bloqueado pelo servidor.",
-  "elsebase.ui.invalid_material": "Use um cubo opaco completo sem entidade de bloco ou fluido."
+  "elsebase.ui.invalid_material": "Use um cubo opaco completo sem entidade de bloco ou fluido.",
+  "elsebase.configuration.combatLockSeconds": "Espera do portal após ataques (segundos)",
+  "elsebase.configuration.combatLockSeconds.tooltip": "Bloqueia a invocação e a chamada após receber um ataque. Danos de fogo e veneno não prolongam a espera. Portais existentes continuam funcionando. 0 desativa a espera.",
+  "elsebase.configuration.requireKnownReturn": "Exigir um destino externo conhecido",
+  "elsebase.configuration.requireKnownReturn.tooltip": "Impede portais instantâneos dentro da Backdoor quando nenhum destino externo foi salvo. Destinos conhecidos mantêm o retorno de emergência.",
+  "elsebase.configuration.startInBackdoor": "Iniciar novos jogadores na Backdoor",
+  "elsebase.configuration.startInBackdoor.tooltip": "Novos jogadores começam em sua âncora pessoal e reaparecem lá se o ponto de renascimento escolhido estiver ausente. Jogadores existentes e conexões posteriores mantêm sua localização.",
+  "elsebase.message.combat_lock": "Você acabou de sofrer um ataque. Espere um pouco antes de invocar seu portal.",
+  "elsebase.message.no_known_return": "Nenhum destino externo conhecido. Primeiro abra um portal instantâneo fora da Backdoor.",
+  "elsebase.message.backdoor_start_blocked": "Seu ponto inicial na Backdoor está bloqueado. Peça a um administrador para liberar seu marcador e o piso abaixo dele; depois reconecte-se.",
+  "elsebase.message.spawn_area_cleared": "Seu ponto de chegada bloqueado foi liberado para permitir a entrada de emergência."
 }

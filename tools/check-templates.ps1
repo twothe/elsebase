@@ -14,5 +14,5 @@ try {
     if (-not (Test-Path -LiteralPath $resultPath)) { throw 'Client produced no result report.' }
     $result = Get-Content -Raw -LiteralPath $resultPath | ConvertFrom-Json
     if ($result.status -ne 'passed' -or $result.started -lt $startedAt) { throw 'Client report is stale or did not pass.' }
-    Write-Output "PASS: $Profile templates (actual pixels, updates, slab faces and menu)"
+    Write-Output "PASS: $Profile templates (first-login pixels, mesh readiness, updates, slab faces and menu)"
 } finally { Pop-Location }

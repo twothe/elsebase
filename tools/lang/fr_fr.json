@@ -184,5 +184,15 @@
   "elsebase.ui.floor": "Sol",
   "elsebase.ui.ceiling": "Plafond",
   "elsebase.ui.blocked_material": "Matériau bloqué par le serveur.",
-  "elsebase.ui.invalid_material": "Utilisez un cube plein opaque sans entité de bloc ni fluide."
+  "elsebase.ui.invalid_material": "Utilisez un cube plein opaque sans entité de bloc ni fluide.",
+  "elsebase.configuration.combatLockSeconds": "Délai du portail après une attaque (secondes)",
+  "elsebase.configuration.combatLockSeconds.tooltip": "Bloque l’invocation et le rappel après une attaque reçue. Les dégâts de feu et de poison ne prolongent pas le délai. Les portails existants restent utilisables. 0 désactive le délai.",
+  "elsebase.configuration.requireKnownReturn": "Exiger une destination extérieure connue",
+  "elsebase.configuration.requireKnownReturn.tooltip": "Refuse les portails instantanés dans la Backdoor si aucune destination extérieure n’est enregistrée. Le retour de secours reste disponible pour les destinations connues.",
+  "elsebase.configuration.startInBackdoor": "Faire débuter les nouveaux joueurs dans la Backdoor",
+  "elsebase.configuration.startInBackdoor.tooltip": "Les nouveaux joueurs commencent à leur ancre personnelle et y réapparaissent si leur point de réapparition choisi manque. Les joueurs existants et les connexions suivantes conservent leur position.",
+  "elsebase.message.combat_lock": "Vous venez de subir une attaque. Attendez un peu avant d’invoquer votre portail.",
+  "elsebase.message.no_known_return": "Aucune destination extérieure connue. Ouvrez d’abord un portail instantané hors de la Backdoor.",
+  "elsebase.message.backdoor_start_blocked": "Votre point de départ dans la Backdoor est bloqué. Demandez à un administrateur de dégager votre marqueur et son sol, puis reconnectez-vous.",
+  "elsebase.message.spawn_area_cleared": "Votre point d’apparition bloqué a été dégagé pour permettre une entrée de secours."
 }

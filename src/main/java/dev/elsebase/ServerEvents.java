@@ -16,6 +16,14 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /** Server lifecycle and narrow policy hooks; no blanket explosion cancellation or fake-player ban. */
 public final class ServerEvents {
+    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST)
+    public void attacked(net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent event) {
+        if (event.getAmount() > 0 && event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player)
+            CombatLock.attacked(player, event.getSource());
+    }
+    @SubscribeEvent public void respawn(net.neoforged.neoforge.event.entity.player.PlayerRespawnPositionEvent event) {
+        BackdoorStart.respawn(event);
+    }
     @SubscribeEvent public void starting(ServerStartingEvent event) {
         new dev.elsebase.world.SlotAllocator(Settings.RADIUS.get(), Settings.SPACING.get());
         WorldState.get(event.getServer());
@@ -72,14 +80,15 @@ public final class ServerEvents {
     @SubscribeEvent public void login(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
             Network.syncLighting(player);
+            if (!BackdoorStart.login(player)) return;
             InstantExpiry.residence(player);
-            if (!Anchors.ensure(player)) Portals.message(player, "Spawn marker could not be prepared; clear its position before entering.");
+            Anchors.ensure(player); // Passive preparation must not clear construction or veto later arrival recovery.
         }
     }
     @SubscribeEvent public void entered(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) InstantExpiry.used(player);
-        if (event.getTo().equals(Elsebase.DIMENSION) && event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player
-                && !Anchors.ensure(player)) Portals.message(player, "Reference floor repair blocked; check your anchor.");
+        if (event.getTo().equals(Elsebase.DIMENSION) && event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player)
+            Anchors.ensure(player);
     }
     @SubscribeEvent public void explosion(ExplosionEvent.Detonate event) {
         event.getAffectedBlocks().removeIf(pos -> StructuralBlock.protectedStructure(event.getLevel(), event.getLevel().getBlockState(pos))

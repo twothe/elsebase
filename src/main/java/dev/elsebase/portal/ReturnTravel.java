@@ -16,6 +16,13 @@ public final class ReturnTravel {
     /** Normal landings must have dry, collision-free body space and nonhazardous solid support. */
     public static boolean safe(ServerPlayer player, ServerLevel level, Vec3 position) {
         var box = player.getBoundingBox().move(position.subtract(player.position()));
+        return safe(player, level, position, box);
+    }
+    /** Personal arrivals must allow standing up, even when entering crouched, swimming or during respawn. */
+    public static boolean safeStanding(ServerPlayer player, ServerLevel level, Vec3 position) {
+        return safe(player, level, position, player.getDimensions(net.minecraft.world.entity.Pose.STANDING).makeBoundingBox(position));
+    }
+    private static boolean safe(ServerPlayer player, ServerLevel level, Vec3 position, net.minecraft.world.phys.AABB box) {
         var feet = BlockPos.containing(position);
         if (!level.getWorldBorder().isWithinBounds(box) || box.minY < level.getMinBuildHeight()
                 || box.maxY > level.getMaxBuildHeight()) return false;
@@ -26,7 +33,7 @@ public final class ReturnTravel {
             if (hazardous(level.getBlockState(pos))) return false;
         return true;
     }
-    private static boolean hazardous(net.minecraft.world.level.block.state.BlockState state) {
+    static boolean hazardous(net.minecraft.world.level.block.state.BlockState state) {
         return state.is(Blocks.MAGMA_BLOCK) || state.is(Blocks.CACTUS) || state.is(Blocks.FIRE)
                 || state.is(Blocks.SOUL_FIRE) || state.is(Blocks.POWDER_SNOW) || state.is(Blocks.SWEET_BERRY_BUSH)
                 || state.is(Blocks.WITHER_ROSE) || state.is(Blocks.CAMPFIRE) || state.is(Blocks.SOUL_CAMPFIRE);

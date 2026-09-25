@@ -38,13 +38,31 @@ public final class ClientChecks {
                     if (!(mc.screen instanceof TitleScreen)) return;
                     require(Settings.SPEC.isLoaded(), "Common config loaded at title");
                     Settings.TEMPLATE_DEFAULT.set("quiet_workshop");
+                    Settings.COMBAT_LOCK_SECONDS.set(3); Settings.REQUIRE_KNOWN_RETURN.set(false); Settings.START_IN_BACKDOOR.set(false);
                     Files.createDirectories(TemplateClient.library());
                     Files.write(TemplateClient.library().resolve("config_fixture.json"), BuiltinThemes.create("quiet_workshop", "Local Fixture").bytes());
                     mc.getLanguageManager().setSelected("de_de"); mc.options.languageCode = "de_de";
                     stage = 1; mc.reloadResourcePacks();
                 }
                 case 1 -> { require(UiText.text("biome.elsebase.backdoor").equals("Backdoor-Werkraum"), "German biome name"); open(mc); stage = 2; }
-                case 2 -> { press(mc, net.minecraft.client.resources.language.I18n.get("neoforge.configuration.uitext.type.common", "Elsebase")); stage = 3; }
+                case 2 -> { press(mc, net.minecraft.client.resources.language.I18n.get("neoforge.configuration.uitext.type.common", "Elsebase")); stage = 20; }
+                case 20 -> { press(mc, UiText.text("elsebase.configuration.portals")); stage = 21; }
+                case 21 -> {
+                    require(descendants(mc.screen).stream().filter(StringWidget.class::isInstance).map(StringWidget.class::cast)
+                            .anyMatch(w -> w.getMessage().getString().equals(UiText.text("elsebase.configuration.combatLockSeconds"))), "Combat delay has a translated native label");
+                    toggle(mc, "elsebase.configuration.requireKnownReturn"); require(Settings.REQUIRE_KNOWN_RETURN.get(), "Native return restriction switch applies");
+                    capture(mc, "config-portals-de.png"); mc.screen.onClose(); stage = 22;
+                }
+                case 22 -> { press(mc, UiText.text("elsebase.configuration.world")); stage = 23; }
+                case 23 -> {
+                    toggle(mc, "elsebase.configuration.startInBackdoor"); require(Settings.START_IN_BACKDOOR.get(), "Native Backdoor start switch applies");
+                    capture(mc, "config-start-de.png"); mc.screen.onClose(); mc.screen.onClose();
+                    var saved = Files.readString(mc.gameDirectory.toPath().resolve("config/elsebase-common.toml"));
+                    require(saved.contains("requireKnownReturn = true") && saved.contains("startInBackdoor = true") && saved.contains("combatLockSeconds = 3"), "Gameplay policy persisted in TOML");
+                    Settings.REQUIRE_KNOWN_RETURN.set(false); Settings.START_IN_BACKDOOR.set(false); Settings.SPEC.save();
+                    open(mc); stage = 24;
+                }
+                case 24 -> { press(mc, net.minecraft.client.resources.language.I18n.get("neoforge.configuration.uitext.type.common", "Elsebase")); stage = 3; }
                 case 3 -> { press(mc, UiText.text("elsebase.configuration.templates")); stage = 4; }
                 case 4 -> { press(mc, UiText.theme("quiet_workshop", "")); stage = 5; }
                 case 5 -> {
@@ -91,5 +109,13 @@ public final class ClientChecks {
         buttons.stream().filter(b -> b.active && b.getMessage().getString().contains(label)).findFirst().orElseThrow(() -> new IllegalStateException("Missing button " + label + ": " + buttons.stream().map(b -> b.getMessage().getString()).toList())).onPress();
     }
     private static void capture(Minecraft mc, String name) { Screenshot.grab(mc.gameDirectory, name, mc.getMainRenderTarget(), result -> {}); }
+    private static void toggle(Minecraft mc, String key) {
+        for (var child : descendants(mc.screen)) if (child instanceof ContainerEventHandler row
+                && row.children().stream().anyMatch(w -> w instanceof StringWidget label && label.getMessage().getString().equals(UiText.text(key)))) {
+            row.children().stream().filter(CycleButton.class::isInstance).map(CycleButton.class::cast).findFirst().orElseThrow().onPress();
+            return;
+        }
+        throw new IllegalStateException("Missing config switch: " + key);
+    }
     private static void require(boolean condition, String message) { if (!condition) throw new IllegalStateException(message); }
 }

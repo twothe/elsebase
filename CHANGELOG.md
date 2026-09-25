@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0 — 2026-09-24
+
+- Fixed rooms retaining gray structural textures when themes arrive during Sodium's initial mesh build, including direct Backdoor starts. Appearance rebuilds now remain pending until the section is ready.
+- Fixed personal entry being blocked by construction on or above the spawn anchor. Entry, initial starts and respawns first find safe nearby footing; if none exists, a bounded emergency repair clears the anchor column subject to protection permissions. Outside summons no longer require a clear anchor.
+
+- Incoming attacks delay instant portal summons/recalls for three seconds by default, configurable from 0 (disabled) to 300 seconds. Fire, poison and wither ticks do not renew the delay; existing portal travel remains usable.
+- Optional first-join starts at the player's personal Backdoor anchor, with a respawn point there. Later logins retain their location; missing respawn points recover to the Backdoor, while valid chosen respawns remain respected.
+- Independent option to refuse instant summons inside the Backdoor when no outside destination is known. Outside summons and remembered returns remain usable.
+- Native config labels, help and new messages translated in all eight supported languages.
+- Existing 1.0.0 worlds remain compatible; world format 4 and template format 2 are unchanged. Both modpack options default to off.
+
 ## 1.0.0 — 2026-09-21
 
 First stable release of Elsebase for Minecraft 1.21.1 and NeoForge.

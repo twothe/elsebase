@@ -184,5 +184,15 @@
   "elsebase.ui.floor": "Boden",
   "elsebase.ui.ceiling": "Decke",
   "elsebase.ui.blocked_material": "Material auf diesem Server gesperrt.",
-  "elsebase.ui.invalid_material": "Undurchsichtigen Vollblock ohne Block-Entity oder Flüssigkeit verwenden."
+  "elsebase.ui.invalid_material": "Undurchsichtigen Vollblock ohne Block-Entity oder Flüssigkeit verwenden.",
+  "elsebase.configuration.combatLockSeconds": "Portalsperre nach Angriffen (Sekunden)",
+  "elsebase.configuration.combatLockSeconds.tooltip": "Sperrt das Beschwören und Zurückrufen nach einem Angriff. Feuer- und Giftschaden verlängern die Sperre nicht. Bestehende Portale bleiben nutzbar. 0 deaktiviert die Sperre.",
+  "elsebase.configuration.requireKnownReturn": "Bekanntes Außenziel voraussetzen",
+  "elsebase.configuration.requireKnownReturn.tooltip": "Verweigert Instant-Portale innerhalb der Backdoor, wenn kein Außenziel gespeichert ist. Bei bekannten Rückzielen bleibt die Notfallrückkehr verfügbar.",
+  "elsebase.configuration.startInBackdoor": "Neue Spieler in der Backdoor starten",
+  "elsebase.configuration.startInBackdoor.tooltip": "Neue Spieler starten an ihrem persönlichen Anker und erscheinen dort wieder, falls ihr gewählter Respawnpunkt fehlt. Bestehende Spieler und spätere Logins behalten ihren Aufenthaltsort.",
+  "elsebase.message.combat_lock": "Du wurdest gerade angegriffen. Warte kurz, bevor du dein Portal beschwörst.",
+  "elsebase.message.no_known_return": "Kein Außenziel bekannt. Öffne zuerst außerhalb der Backdoor ein Instant-Portal.",
+  "elsebase.message.backdoor_start_blocked": "Dein Backdoor-Startpunkt ist blockiert. Bitte einen Administrator, deinen Spawn-Marker und seinen Boden freizumachen, und verbinde dich erneut.",
+  "elsebase.message.spawn_area_cleared": "Dein blockierter Spawnplatz wurde für den Notfalleintritt freigeräumt."
 }

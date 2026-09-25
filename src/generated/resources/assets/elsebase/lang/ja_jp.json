@@ -184,5 +184,15 @@
   "elsebase.ui.floor": "床",
   "elsebase.ui.ceiling": "天井",
   "elsebase.ui.blocked_material": "この素材はサーバーで禁止されています。",
-  "elsebase.ui.invalid_material": "ブロックエンティティや液体のない、不透明なフルブロックを使用してください。"
+  "elsebase.ui.invalid_material": "ブロックエンティティや液体のない、不透明なフルブロックを使用してください。",
+  "elsebase.configuration.combatLockSeconds": "攻撃後のポータル待機時間（秒）",
+  "elsebase.configuration.combatLockSeconds.tooltip": "攻撃を受けた後、一時的に即時ポータルの召喚と呼び戻しを禁止します。炎や毒の継続ダメージでは延長されません。既存のポータルは使用できます。0 で無効になります。",
+  "elsebase.configuration.requireKnownReturn": "既知の外部の行き先を必須にする",
+  "elsebase.configuration.requireKnownReturn.tooltip": "外部の行き先が保存されていない場合、Backdoor 内での即時ポータルの召喚を禁止します。既知の行き先への緊急帰還は利用できます。",
+  "elsebase.configuration.startInBackdoor": "新規プレイヤーを Backdoor で開始させる",
+  "elsebase.configuration.startInBackdoor.tooltip": "新規プレイヤーは個人アンカーから開始し、選択したリスポーン地点が失われた場合もそこに戻ります。既存のプレイヤーや再ログイン時の位置は変わりません。",
+  "elsebase.message.combat_lock": "攻撃を受けた直後です。少し待ってからポータルを召喚してください。",
+  "elsebase.message.no_known_return": "外部の行き先が不明です。まず Backdoor の外で即時ポータルを開いてください。",
+  "elsebase.message.backdoor_start_blocked": "Backdoor のスポーン地点が塞がれています。管理者にマーカーとその下の床を空けてもらい、再接続してください。",
+  "elsebase.message.spawn_area_cleared": "緊急入場のため、塞がれたスポーン地点を空けました。"
 }

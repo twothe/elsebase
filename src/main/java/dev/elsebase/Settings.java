@@ -10,6 +10,8 @@ public final class Settings {
     public static final ModConfigSpec.IntValue TEMPLATE_QUOTA;
     public static final ModConfigSpec.ConfigValue<String> TEMPLATE_DEFAULT;
     public static final ModConfigSpec.BooleanValue INSTANT, NATURAL_SPAWNS, DARKNESS;
+    public static final ModConfigSpec.BooleanValue START_IN_BACKDOOR, REQUIRE_KNOWN_RETURN;
+    public static final ModConfigSpec.IntValue COMBAT_LOCK_SECONDS;
     public static final ModConfigSpec.IntValue PERMANENT_LIMIT, MIRROR_LIMIT, EDIT_BUDGET, RADIUS, SPACING;
     public static final ModConfigSpec.ConfigValue<List<? extends String>> EXCLUDED;
     public static final ModConfigSpec.EnumValue<dev.elsebase.preview.PreviewServer.Budget> PREVIEW_BUDGET;
@@ -17,6 +19,10 @@ public final class Settings {
         var b = new ModConfigSpec.Builder();
         b.push("portals");
         INSTANT = b.comment("Disables new outside instant entrances; existing returns remain usable.").define("allowInstant", true);
+        COMBAT_LOCK_SECONDS = b.comment("Seconds after an incoming attack during which instant summon/recall is blocked. Fire/poison ticks do not renew it. Existing portal travel is unaffected. Zero disables the lock.")
+                .defineInRange("combatLockSeconds", 3, 0, 300);
+        REQUIRE_KNOWN_RETURN = b.comment("Refuse instant summon inside the Backdoor when no outside destination is recorded. Known returns retain emergency recovery.")
+                .define("requireKnownReturn", false);
         PERMANENT_LIMIT = b.comment("Set zero to disable new permanent pairs. Existing pairs remain usable.").defineInRange("maxPermanentPairsPerPlayer", 4, 0, 64);
         EXCLUDED = b.comment("Dimension IDs in which new entrances cannot be created. Existing returns remain usable.")
                 .defineListAllowEmpty("excludedExternalDimensions", List.of(), () -> "minecraft:the_end",
@@ -31,6 +37,8 @@ public final class Settings {
         RADIUS = b.comment("Frozen on first allocation. Changing this for an existing save is rejected.").defineInRange("radius", 131072, 1024, 1000000);
         SPACING = b.comment("Frozen with radius; must be divisible by 16. New worlds recommended.").defineInRange("minimumSpacing", 8192, 256, 1000000);
         b.pop().push("world");
+        START_IN_BACKDOOR = b.comment("New players start at their personal Backdoor anchor with a respawn point there. Existing players and subsequent logins retain their location.")
+                .define("startInBackdoor", false);
         NATURAL_SPAWNS = b.comment("Allow natural mobs; spawners and machines retain normal rules.").define("allowNaturalMobSpawning", false);
         DARKNESS = b.comment("Disable uniform visual brightness in the Backdoor. No generated light sources in either mode. Player lighting and natural spawn rules remain normal. Server controls multiplayer brightness.")
                 .define("darkness", false);

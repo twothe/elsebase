@@ -19,12 +19,44 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-/** Opt-in isolated actual-client checks: textured faces, live overwrite, free cursor and template menu. */
+/** Opt-in actual-client checks: first-login mesh ordering, textured faces, live overwrite and tool menus. */
 @EventBusSubscriber(modid=Elsebase.ID,value=Dist.CLIENT)
 public final class TemplateChecks {
     private static int stage,ticks,gallery;
     private static long started;
     private static volatile boolean prepared;
+    private static volatile ChunkPos startupColumn;
+    private static TemplateProtocol.Reply pendingStartupAppearance;
+    private static boolean startupRaceExercised;
+    @SubscribeEvent(priority=net.neoforged.bus.api.EventPriority.LOWEST)
+    public static void playerJoined(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
+        if(Boolean.getBoolean("elsebase.verifyTemplates")) startupColumn=event.getEntity().chunkPosition();
+    }
+    /** Delay the first column until its unthemed mesh completes, reproducing late appearance delivery deterministically. */
+    private static void receiveStartup(TemplateProtocol.Reply packet) {
+        if(stage==1 && startupColumn!=null && packet.operation().equals("column") && packet.key().equals(Long.toString(startupColumn.toLong()))) pendingStartupAppearance=packet;
+        else TemplateClient.receive(packet);
+    }
+    /** Called on Sodium's render thread immediately before the first mesh becomes built/visible. */
+    public static void beforeSectionUpload(SectionPos section) {
+        if(!Boolean.getBoolean("elsebase.verifyTemplates") || pendingStartupAppearance==null || startupRaceExercised
+                || !section.chunk().equals(startupColumn) || section.y()!=SectionPos.blockToSectionCoord(Minecraft.getInstance().player.getBlockY())) return;
+        startupRaceExercised=true;
+        require(!Minecraft.getInstance().levelRenderer.isSectionCompiled(section.origin()),"Race fixture reaches an unbuilt section");
+        TemplateClient.receive(pendingStartupAppearance); pendingStartupAppearance=null;
+        TemplateProtocol.receiver=TemplateClient::receive;
+        TemplateClient.tick(new ClientTickEvent.Post());
+        Elsebase.LOGGER.info("Startup race: appearance delivered and rebuild queue processed before initial mesh upload at {}",section);
+    }
+    /** Configure the real first-login path before any player joins; no late recoloring may hide missing delivery. */
+    @SubscribeEvent public static void serverStarted(net.neoforged.neoforge.event.server.ServerStartedEvent event) {
+        if(!Boolean.getBoolean("elsebase.verifyTemplates")) return;
+        Settings.START_IN_BACKDOOR.set(true);
+        Settings.TEMPLATE_DEFAULT.set("fixture/start");
+        var state=TemplateState.get(event.getServer());
+        state.entries.put("fixture/start",new TemplateState.Entry("fixture/start","",solidTheme("First login red",Blocks.RED_CONCRETE)));
+        state.changed();
+    }
     public static Pattern solid(String name,net.minecraft.world.level.block.Block block) { return new Pattern(name,"Fixture",1,1,List.of(Materials.describe(block.defaultBlockState())),List.of(0)); }
     public static Theme solidTheme(String name,net.minecraft.world.level.block.Block block) { var pattern=solid(name,block); return new Theme(name,"Fixture",pattern,pattern,pattern); }
     /** Assert the dimension policy before chunks may compile, not only after the first client tick. */
@@ -43,9 +75,17 @@ public final class TemplateChecks {
             if(mc.screen instanceof AccessibilityOnboardingScreen) mc.setScreen(new TitleScreen());
             if(!(mc.screen instanceof TitleScreen)) return;
             require(dev.elsebase.client.preview.ShaderCompatibility.activeShaders()==Boolean.getBoolean("elsebase.templateShaderExpected"),"Requested shader fixture is active");
+            if(net.neoforged.fml.ModList.get().isLoaded("sodium")) TemplateProtocol.receiver=TemplateChecks::receiveStartup;
             stage=1; mc.getTutorial().setStep(net.minecraft.client.tutorial.TutorialSteps.NONE);
             mc.createWorldOpenFlows().createFreshLevel("elsebase-template-check-"+started,new LevelSettings("Template regression",GameType.CREATIVE,false,Difficulty.PEACEFUL,true,new GameRules(),WorldDataConfiguration.DEFAULT),new WorldOptions(47,false,false),registries -> registries.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT).value().createWorldDimensions(),mc.screen);
-        } else if(stage==1 && mc.player!=null && mc.screen==null && mc.getSingleplayerServer()!=null) {
+        } else if(stage==1 && mc.player!=null && mc.screen==null && mc.getSingleplayerServer()!=null && ++ticks>100) {
+            require(mc.level.dimension().equals(Elsebase.DIMENSION),"First login starts directly in Backdoor");
+            if(net.neoforged.fml.ModList.get().isLoaded("sodium")) require(startupRaceExercised,"Sodium startup race was exercised");
+            var startColumn=mc.player.chunkPosition();
+            capture(mc,"template-first-login.png");
+            Elsebase.LOGGER.info("First-login appearance: column={}, cached={}, definitions={}, redPixels={}",startColumn,TemplateModels.COLUMNS.containsKey(startColumn.toLong()),TemplateModels.PATTERNS.keySet(),colored(mc,0));
+            require(TemplateModels.COLUMNS.containsKey(startColumn.toLong()),"First-login starter column receives appearance");
+            require(colored(mc,0)>300,"Actual first-login starter room pixels");
             stage=2; ticks=0; var server=mc.getSingleplayerServer(); var id=mc.player.getUUID();
             server.execute(() -> {
                 var player=server.getPlayerList().getPlayer(id); var level=server.getLevel(Elsebase.DIMENSION); level.getChunk(0,0);
@@ -141,7 +181,7 @@ public final class TemplateChecks {
         } else if(stage==22) {
             try { Files.writeString(mc.gameDirectory.toPath().resolve("template-check-result.json"),"{\"status\":\"passed\",\"started\":"+started+"}"); }
             catch(java.io.IOException error) { throw new IllegalStateException(error); }
-            Elsebase.LOGGER.info("PASS: template pixels, independent slab faces, live overwrite, catalog, room preview and free cursor"); stage=6; mc.stop();
+            Elsebase.LOGGER.info("PASS: first-login template pixels, mesh readiness, independent slab faces, live overwrite, catalog, room preview and free cursor"); stage=6; mc.stop();
         }
     }
     private static void openGallery(Minecraft mc) {

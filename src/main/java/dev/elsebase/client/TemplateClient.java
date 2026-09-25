@@ -24,6 +24,7 @@ public final class TemplateClient {
     public static final Map<String,Theme> THEMES=new HashMap<>();
     public static String message="";
     private static final Set<SectionPos> DIRTY=new LinkedHashSet<>();
+    private static final ArrayDeque<SectionPos> WAITING_FOR_MESH=new ArrayDeque<>();
     private static SectionPos priorityOrigin=SectionPos.of(0,0,0);
     private static final PriorityQueue<SectionPos> NEAREST=new PriorityQueue<>(Comparator.comparingDouble(p -> p.distSqr(priorityOrigin)));
     public static void install() { TemplateProtocol.receiver=TemplateClient::receive; }
@@ -91,11 +92,21 @@ public final class TemplateClient {
     @SubscribeEvent public static void tick(ClientTickEvent.Post event) {
         var mc=Minecraft.getInstance(); TemplateModels.inBackdoor=mc.level!=null && mc.level.dimension().equals(Elsebase.DIMENSION);
         if(!TemplateModels.inBackdoor || mc.player==null) return;
-        var origin=SectionPos.of(mc.player.blockPosition()); if(!origin.equals(priorityOrigin)) { priorityOrigin=origin; NEAREST.clear(); NEAREST.addAll(DIRTY); }
-        for(int i=0;i<4 && !NEAREST.isEmpty();i++) { var section=NEAREST.remove(); DIRTY.remove(section);
-            if(mc.level.hasChunk(section.x(),section.z())) mc.levelRenderer.setSectionDirty(section.x(),section.y(),section.z());
+        var origin=SectionPos.of(mc.player.blockPosition()); if(!origin.equals(priorityOrigin)) { var queued=new ArrayList<>(NEAREST); priorityOrigin=origin; NEAREST.clear(); NEAREST.addAll(queued); }
+        // Sodium ignores rebuilds before the first mesh upload. Keep ownership until the renderer can accept them.
+        // Round-robin readiness checks let invisible/unbuilt sections wait without starving visible sections.
+        for(int i=0,count=Math.min(32,WAITING_FOR_MESH.size());i<count;i++) {
+            var section=WAITING_FOR_MESH.remove();
+            if(!mc.level.hasChunk(section.x(),section.z())) DIRTY.remove(section);
+            else if(mc.levelRenderer.isSectionCompiled(section.origin())) NEAREST.add(section);
+            else WAITING_FOR_MESH.add(section);
+        }
+        for(int i=0;i<4 && !NEAREST.isEmpty();i++) { var section=NEAREST.remove();
+            if(!mc.level.hasChunk(section.x(),section.z())) DIRTY.remove(section);
+            else if(!mc.levelRenderer.isSectionCompiled(section.origin())) WAITING_FOR_MESH.add(section);
+            else { mc.levelRenderer.setSectionDirty(section.x(),section.y(),section.z()); DIRTY.remove(section); }
         }
     }
-    @SubscribeEvent public static void logout(ClientPlayerNetworkEvent.LoggingOut event) { TemplateModels.clear(); DIRTY.clear(); NEAREST.clear(); catalog=new com.google.gson.JsonObject(); draft=null; draftBase=""; changes=""; THEMES.clear(); }
+    @SubscribeEvent public static void logout(ClientPlayerNetworkEvent.LoggingOut event) { TemplateModels.clear(); DIRTY.clear(); NEAREST.clear(); WAITING_FOR_MESH.clear(); catalog=new com.google.gson.JsonObject(); draft=null; draftBase=""; changes=""; THEMES.clear(); }
     private TemplateClient() {}
 }

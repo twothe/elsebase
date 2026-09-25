@@ -1,0 +1,7 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-09-21",
+  "reference": "docs/concepts/elsebase-logo-door.png",
+  "output": "docs/branding/elsebase-icon.png",
+  "prompt": "Use case: logo-brand. Create a finished standalone square 1024x1024 PNG icon for the Minecraft mod Elsebase, for a CurseForge project icon and GitHub avatar. Input image is the approved logo study; refine ONLY its lower-left symbol application into the final icon. Preserve the distinctive slightly angled white doorway, offset turquoise room corner to its right, and small warm orange threshold at the bottom. Single centered emblem, no lettering. Solid opaque deep teal background filling the entire square edge to edge, no rounded outer border, no white margins. Crisp flat vector-like geometry and clean antialiasing, uniform solid colors, no grain, texture, glow, gradients, shadows, bevel or decorative detail. Strong white doorway silhouette with generous open doorway interior; lighter turquoise rear wall and floor separated by a clear deep-teal seam; orange threshold. Keep all foreground geometry within the central 68 percent of the canvas for small thumbnail legibility and circular avatar cropping. Optical centering. The reference's doorway orientation and distinctive room geometry must remain recognizable. Output exactly one icon, not a design board, not a mockup, no alternate versions, no text, no watermark."
+}

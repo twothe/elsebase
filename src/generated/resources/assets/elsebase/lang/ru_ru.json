@@ -184,5 +184,15 @@
   "elsebase.ui.floor": "Пол",
   "elsebase.ui.ceiling": "Потолок",
   "elsebase.ui.blocked_material": "Материал запрещён сервером.",
-  "elsebase.ui.invalid_material": "Используйте непрозрачный полный куб без сущности блока и жидкости."
+  "elsebase.ui.invalid_material": "Используйте непрозрачный полный куб без сущности блока и жидкости.",
+  "elsebase.configuration.combatLockSeconds": "Задержка портала после атак (секунды)",
+  "elsebase.configuration.combatLockSeconds.tooltip": "Запрещает вызов и перемещение мгновенного портала после полученной атаки. Урон от огня и яда не продлевает задержку. Существующие порталы работают. 0 отключает задержку.",
+  "elsebase.configuration.requireKnownReturn": "Требовать известную внешнюю точку назначения",
+  "elsebase.configuration.requireKnownReturn.tooltip": "Запрещает мгновенные порталы внутри Backdoor, если внешняя точка назначения не сохранена. Для известных точек остаётся аварийное возвращение.",
+  "elsebase.configuration.startInBackdoor": "Начинать игру в Backdoor",
+  "elsebase.configuration.startInBackdoor.tooltip": "Новые игроки появляются у личного якоря и возрождаются там, если выбранная точка возрождения недоступна. Существующие игроки и повторные входы сохраняют местоположение.",
+  "elsebase.message.combat_lock": "Вас только что атаковали. Немного подождите перед вызовом портала.",
+  "elsebase.message.no_known_return": "Внешняя точка назначения неизвестна. Сначала откройте мгновенный портал вне Backdoor.",
+  "elsebase.message.backdoor_start_blocked": "Ваша начальная точка в Backdoor заблокирована. Попросите администратора освободить маркер и пол под ним, затем подключитесь снова.",
+  "elsebase.message.spawn_area_cleared": "Заблокированное место появления расчищено для аварийного входа."
 }

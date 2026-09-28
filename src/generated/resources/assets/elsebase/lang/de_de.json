@@ -194,5 +194,6 @@
   "elsebase.message.combat_lock": "Du wurdest gerade angegriffen. Warte kurz, bevor du dein Portal beschwörst.",
   "elsebase.message.no_known_return": "Kein Außenziel bekannt. Öffne zuerst außerhalb der Backdoor ein Instant-Portal.",
   "elsebase.message.backdoor_start_blocked": "Dein Backdoor-Startpunkt ist blockiert. Bitte einen Administrator, deinen Spawn-Marker und seinen Boden freizumachen, und verbinde dich erneut.",
-  "elsebase.message.spawn_area_cleared": "Dein blockierter Spawnplatz wurde für den Notfalleintritt freigeräumt."
+  "elsebase.message.spawn_area_cleared": "Dein blockierter Spawnplatz wurde für den Notfalleintritt freigeräumt.",
+  "elsebase.message.leashed_transfer_incomplete": "Einige angeleinte Begleiter konnten nicht folgen. Prüfe den Ausgangsort und schaffe Platz am Ziel."
 }

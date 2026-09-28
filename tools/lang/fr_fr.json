@@ -194,5 +194,6 @@
   "elsebase.message.combat_lock": "Vous venez de subir une attaque. Attendez un peu avant d’invoquer votre portail.",
   "elsebase.message.no_known_return": "Aucune destination extérieure connue. Ouvrez d’abord un portail instantané hors de la Backdoor.",
   "elsebase.message.backdoor_start_blocked": "Votre point de départ dans la Backdoor est bloqué. Demandez à un administrateur de dégager votre marqueur et son sol, puis reconnectez-vous.",
-  "elsebase.message.spawn_area_cleared": "Votre point d’apparition bloqué a été dégagé pour permettre une entrée de secours."
+  "elsebase.message.spawn_area_cleared": "Votre point d’apparition bloqué a été dégagé pour permettre une entrée de secours.",
+  "elsebase.message.leashed_transfer_incomplete": "Certains compagnons tenus en laisse n’ont pas pu suivre. Vérifiez le point de départ et libérez de la place à l’arrivée."
 }

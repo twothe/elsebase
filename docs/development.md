@@ -1,5 +1,27 @@
 # Development and verification
 
+## Reported arrival-side lead drops — 2026-09-28, investigation open
+
+The owner reports vanilla cows/sheep arriving successfully but dropping their leads at the destination. The current code already restores leash holders synchronously after native dimension transfers. Pinned `Leashable.tickLeash` drops on dead holders, excessive distance, or unresolved saved holders after 100 ticks; client packet timing alone does not create server-side lead items. No specific cause has been established for the reported pack.
+
+The personal-portal GameTest now runs cow/sheep AI and checks the entire group again after 120 ticks on each side. All 33 GameTests pass. The actual-client portal fixture now carries a vanilla cow and sheep through a permanent portal, waits 120 arrival ticks and checks both authoritative server holders and client link delivery before removing the fixture animals. `tools/check-portals.ps1` (vanilla/fancy) passed with silent audio and a free cursor. Both animals retained their leads. These checks do not reproduce the owner's failure and are not evidence of a fix. Obtain the affected instance's `logs/latest.log` (mod versions) and exact installed Elsebase JAR/checksum before changing transfer behavior or adding targeted diagnostics. No gameplay code changed during this investigation.
+
+
+## Tight-space portal placement and arrival — unreleased 1.1.0
+
+The new short-corridor GameTest failed against the original placement implementation (north-facing two-cell, one-wide, two-high corridor). After the fix, `build` and all **33 GameTests** pass, including all four corridor orientations, isolated uphill/downhill ledges, odd lateral offsets, unchanged pairs when no safe floor remains, and the existing vegetation/claims/unsupported-trigger contracts. An actual return onto a single supported portal cell remains outside beyond the old cooldown; leaving and re-entering permits travel again. The test uses production summon, return search and contact processing, not copied placement logic. Server-only changes did not require graphical launches. The packaged 1.1.0 JAR also passed dedicated-server startup, save, restart and clean shutdown.
+
+
+## Leashed portal companions — unreleased 1.1.0
+
+`build` and all **31 GameTests** passed. The new actual-portal round trip carries a cow, sheep and leashed boat, with two boat passengers and a chest minecart's nested chicken passenger. Assertions cover UUIDs, leashes, all seat relationships, age/name, seven stored diamonds, collision-free bodies and no lead-item spawns during either crossing. Unleashed tame wolves and fence-held cattle stay outside. Additional tests exercise a real NeoForge dimension-travel veto and a sealed destination: source entities/passengers survive, exactly one lead is returned on a broken connection, the player's escape remains independent, and surrounding construction stays unchanged.
+
+Entity fixtures wait for source/destination chunk tracking instead of assuming an entity is queryable immediately after insertion. Lead-conservation checks observe item-join events only during the synchronous transfer, excluding older drops in the persistent test world. The runtime uses returned/transition-callback instances to restore leashes immediately; source inspection also confirms vanilla `ServerEntity.sendPairingData` sends leash and passenger links when clients begin tracking them.
+
+All eight message catalogs passed localization verification. No client renderer or config UI changed, so graphical fixtures were not rerun. Arbitrary modded dimension/mount hooks and custom vehicle seating still need pack-specific integration checks; the implementation uses the native APIs rather than replacing those behaviors.
+
+The final packaged 1.1.0 JAR passed dedicated-server startup, save, reload and clean shutdown in both release checks. The version and world/template formats remain unchanged.
+
 ## First-login theme readiness — unreleased 1.1.0
 
 The ordinary fresh-world run passed both with and without Sodium; the race required controlling delivery order to reproduce reliably. The expanded template fixture withholds only the first starter-column appearance packet until Sodium is about to upload its initial unthemed mesh, then delivers the actual packet and processes the production rebuild queue while the section is still unbuilt. The original implementation failed the visible-pixel assertion with **zero red pixels**, despite all client definitions and the column assignment being present. The corrected queue produced **102,318 red pixels** under the same ordering. Before/after screenshots were visually inspected. See [appearance delivery](surface-templates.md#appearance-delivery-during-travel) for the exact source/API trace and bounded scheduling contract.

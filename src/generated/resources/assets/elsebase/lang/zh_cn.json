@@ -194,5 +194,6 @@
   "elsebase.message.combat_lock": "你刚刚受到攻击。请稍等片刻再召唤传送门。",
   "elsebase.message.no_known_return": "没有已知的外部目的地。请先在 Backdoor 外打开一次即时传送门。",
   "elsebase.message.backdoor_start_blocked": "你的 Backdoor 出生点被阻挡。请管理员清理出生标记及其下方的地板，然后重新连接。",
-  "elsebase.message.spawn_area_cleared": "已清理被阻挡的出生区域，以便紧急进入。"
+  "elsebase.message.spawn_area_cleared": "已清理被阻挡的出生区域，以便紧急进入。",
+  "elsebase.message.leashed_transfer_incomplete": "部分被拴住的生物未能跟随传送。请检查出发位置，并在目的地腾出空间。"
 }

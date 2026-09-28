@@ -1,5 +1,25 @@
 # Portal and starting policies — 1.1.0
 
+## Grounded instant placement and arrival contact
+
+The former summon search sampled only nine cells (forward distances 2/3/4, lateral offsets 0/±2) at the player's current block height and accepted unsupported air. This excluded short corridors, odd lateral offsets and terrain steps. `Portals.nearby` now uses a precomputed, deterministically ranked forward half-disc of radius four and vertical offsets ±2. The familiar position two blocks ahead remains preferred. Every candidate requires nonhazardous sturdy support, free 1×2 body space, no contact with the player's current body, and line of sight; replaceable vegetation/snow and reclaimable portal remnants retain their existing handling. No neighboring clearance or terrain modification is required. This is an automatic summon policy, not an added restriction on permanent placement or existing portal traversal. Inside failure still uses the established escape path.
+
+A return search can legitimately choose the doorway center when it is the only safe footing. The former 15-tick cooldown then expired while the player's body still touched the trigger, causing another teleport. Both transfer paths now snapshot registered doorway surfaces intersecting the arrived player's body. These contacts remain suppressed until the body leaves them; elapsed time alone never releases them. Server ticks and contact processing release departed surfaces, and logout/server shutdown clear runtime state. Existing cooldown and traversal budgets remain independent. This covers safe nearby fallback positions as well as the nominal endpoint and requires no saved-data changes.
+
+## Leashed companions
+
+Actual portal traversal captures the travelling player's leash graph before changing dimension. `LeashedTravel` scans loaded source entities once, indexes `Leashable` holders and follows connected vehicle/passenger trees without source chunk loads or pet-ownership inference. Both entry paths and physical doorway exits invoke the same helper. Login, respawn, commands and direct F recovery do not trigger companion transport.
+
+The player completes safe travel first. Each companion group searches within six horizontal blocks and two vertical blocks of arrival, reserving collision-free dry space for the root and its entire seated passenger tree, away from the player and already transferred groups. It requires nonhazardous solid footing and respects world borders/build limits. Extreme modded bounds above 16 blocks horizontally or 24 vertically are rejected before collision scans. Terrain is never changed for companions. Missing space cannot prevent the player's escape.
+
+Minecraft 1.21.1's `Entity.changeDimension(DimensionTransition)` recursively moves passengers and preserves UUIDs/entity NBT. Its NeoForge travel and mounting hooks remain authoritative; `canChangeDimensions` is checked for every member first. A hook may refuse an individual passenger while allowing the vehicle, following the native behavior; refusals are reported without deleting or recreating the rejected entity. An unexpected runtime transfer failure is logged with entity/type/dimensions and also reported. Arbitrary broken mod implementations are not transactionally recoverable.
+
+Use the transition callback/returned instances to restore the captured leash edges. Destination `ServerLevel.getEntity(UUID)` can still be empty until the chunk becomes tracked, so it is not proof of transfer failure. Successful arrivals receive vanilla portal tickets and zero velocity/fall distance; seated passengers are positioned immediately. Broken cross-dimension edges drop one lead rather than retaining a stale holder. Standard `Leashable` implementations (including vanilla 1.21.1 boats) work without a mod-specific allowlist. Unconnected pets are untouched, with no promise that vanilla or another mod will teleport them across dimensions.
+
+No persistent state, configuration options or protocol changes are introduced. The refusal message is maintained in all eight locale catalogs.
+
+## Configuration
+
 The server's `config/elsebase-common.toml` controls these options. All three appear in the native NeoForge Config screen with localized labels/help. No world regeneration or data migration is required.
 
 | Key | Default | Behavior |

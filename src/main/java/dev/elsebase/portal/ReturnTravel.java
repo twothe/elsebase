@@ -94,8 +94,11 @@ public final class ReturnTravel {
             if(endpoint!=null) yaw+=dev.elsebase.preview.PortalView.rotation(source,endpoint);
             dev.elsebase.preview.PreviewServer.transfer(player,source,actual,landing,yaw,player.getXRot());
         }
+        var companions = source == null ? null : LeashedTravel.capture(player);
         player.teleportTo(destination,landing.x,landing.y,landing.z,yaw,player.getXRot());
+        Portals.arrived(player);
         player.setDeltaMovement(Vec3.ZERO); player.fallDistance=0;
+        if (companions != null) companions.follow(player);
     }
     /** Last resort for void/blocked spawn worlds: add footing in empty sky; never clear existing builds. */
     private static Vec3 refuge(ServerPlayer player, ServerLevel level, BlockPos spawn) {

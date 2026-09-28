@@ -194,5 +194,6 @@
   "elsebase.message.combat_lock": "You were just attacked. Wait briefly before summoning your portal.",
   "elsebase.message.no_known_return": "No outside destination is known. Open an instant portal outside the Backdoor first.",
   "elsebase.message.backdoor_start_blocked": "Your Backdoor spawn is blocked. Ask an administrator to clear your spawn marker and its floor, then reconnect.",
-  "elsebase.message.spawn_area_cleared": "Your blocked spawn area was cleared for emergency entry."
+  "elsebase.message.spawn_area_cleared": "Your blocked spawn area was cleared for emergency entry.",
+  "elsebase.message.leashed_transfer_incomplete": "Some leashed companions could not follow. Check the source and make room at the destination."
 }

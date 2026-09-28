@@ -8,6 +8,7 @@
 - Keep version 1.1.0 until further notice: the owner confirmed it is still unreleased after the blocked-arrival report.
 - Personal arrival uses `AnchorArrival`: exact anchor, bounded nearby standing space, then explicit last-resort clearing of only the owner's marker/headroom/support. Never gate outside summons on exact marker clearance. Passive login/dimension preparation stays non-destructive. Emergency edits still honor claims and foreign registered anchors/portals; rollback must restore block-entity contents without duplicate drops.
 - Attack lock delays instant summons/recalls, not existing portal traversal; periodic fire/poison damage must not renew it. Skyblock options are independent: first-join Backdoor start and refusal of unknown outside returns. Existing home reservations are returning players; never teleport them on every login. See `docs/portal-policies.md`.
+- Actual portal crossings carry the player's leash graph and native passenger trees via `LeashedTravel`; unconnected pets remain untouched. Preserve native dimension hooks, safe group landing and lead conservation; failures never block the player's escape. Use returned/callback entity instances for immediate leash restoration, since destination UUID lookup may await chunk tracking. Login, respawn and direct F recovery do not carry companions.
 - Keep all eight catalogs in `tools/lang/` synchronized for interface changes; generate with `node tools/generate-localizations.mjs`. Never fill untranslated keys with English. Run `verifyLocalizations` and the silent/free-cursor `tools/check-config.ps1` after configuration UI changes. Preserve theme IDs and user-authored names; translate built-in display names by ID.
 - Preserve `docs/backroom-industry-design.md` as the original input. Record open questions and agreed changes separately until the design is approved.
 - Target Minecraft 1.21.1, NeoForge and Java 21. Use the checked-in Gradle wrapper and pinned versions.
@@ -60,7 +61,7 @@ Elsebase implements a permanent workspace dimension with chunk-aligned rooms, re
 - [Naming discussion](docs/naming-and-logo.md): selected Elsebase name, earlier shortlist, research and discarded directions.
 - [Elsebase logo proposals](docs/elsebase-logo-proposals.md): selected doorway direction, alternative studies, images and production provenance.
 - [Platform logo](docs/branding/README.md): square PNG for CurseForge and GitHub, with generation provenance.
-- [Portal and starting policies](docs/portal-policies.md): 1.1.0 attack lock, first-join/respawn behavior and independent known-return restriction.
+- [Portal and starting policies](docs/portal-policies.md): leashed companions, attack lock, first-join/respawn behavior and independent known-return restriction.
 
 ## Glossary
 
@@ -93,3 +94,5 @@ Elsebase implements a permanent workspace dimension with chunk-aligned rooms, re
 - Saved collection/coordinate reads must reject missing or wrongly typed NBT; never interpret damaged saved registries as empty. New preview subscriptions and chunk watches must renew appearance delivery even if earlier packets were already sent.
 - Theme rebuilds must wait for `LevelRenderer.isSectionCompiled`, not merely installed chunks: Sodium ignores rebuilds before the first mesh upload. Preserve pending work with bounded, fair readiness checks. The template fixture reproduces late first-login appearance delivery before upload; keep that regression in the Sodium profiles.
 - `build` includes `verifyReleaseJar`: development fixtures must stay out of the distributed artifact. Run `tools/check-release-jar.py` after build/GameTests to verify packaged dedicated-server startup, save and restart.
+
+- Automatic F placement searches a bounded forward neighborhood including adjacent cells and height offsets, requiring safe solid support; keep permanent placement and unsupported existing traversal independent. Portal arrivals overlapping registered surfaces must remain suppressed until the player leaves those surfaces, not merely until a timer expires. See `docs/portal-policies.md`.

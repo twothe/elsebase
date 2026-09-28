@@ -17,11 +17,13 @@ public final class Portals {
     private static final Map<UUID, Long> REQUESTS = new HashMap<>();
     private static final LinkedHashMap<UUID, ServerPlayer> PENDING = new LinkedHashMap<>();
     private static final Map<UUID, Endpoint> LINKING = new HashMap<>();
+    private static final Map<UUID, Set<Endpoint>> ARRIVAL_CONTACTS = new HashMap<>();
+    private static final List<BlockPos> SUMMON_OFFSETS = summonOffsets();
     private static int arrivalTick = -1, arrivals;
     private Portals() {}
 
-    public static void clear() { COOLDOWNS.clear(); REQUESTS.clear(); PENDING.clear(); LINKING.clear(); arrivalTick = -1; arrivals = 0; }
-    public static void logout(UUID id) { PENDING.remove(id); REQUESTS.remove(id); COOLDOWNS.remove(id); LINKING.remove(id); }
+    public static void clear() { ARRIVAL_CONTACTS.clear(); COOLDOWNS.clear(); REQUESTS.clear(); PENDING.clear(); LINKING.clear(); arrivalTick = -1; arrivals = 0; }
+    public static void logout(UUID id) { ARRIVAL_CONTACTS.remove(id); PENDING.remove(id); REQUESTS.remove(id); COOLDOWNS.remove(id); LINKING.remove(id); }
     public static void message(ServerPlayer player, String text) { player.displayClientMessage(text.startsWith("elsebase.message.") ? Component.translatable(text) : Component.literal(text), true); }
 
     public static void request(ServerPlayer player) {
@@ -32,7 +34,12 @@ public final class Portals {
         PENDING.put(player.getUUID(), player);
     }
     /** One potentially generating summon per tick; requests from the same player coalesce. */
-    public static void tick() {
+    public static void tick(MinecraftServer server) {
+        for (var id : List.copyOf(ARRIVAL_CONTACTS.keySet())) {
+            var player = server.getPlayerList().getPlayer(id);
+            if (player == null) ARRIVAL_CONTACTS.remove(id);
+            else updateArrivalContact(player);
+        }
         var iterator = PENDING.values().iterator();
         if (!iterator.hasNext()) return;
         ServerPlayer player = iterator.next(); iterator.remove();
@@ -82,11 +89,29 @@ public final class Portals {
     private static boolean excluded(ServerLevel level) {
         return Settings.EXCLUDED.get().contains(level.dimension().location().toString());
     }
+    /** Bounded forward half-disc, including immediate/side cells and nearby terrain elevations. */
+    private static List<BlockPos> summonOffsets() {
+        var offsets = new ArrayList<BlockPos>();
+        for (int forward=0;forward<=4;forward++) for (int side=-4;side<=4;side++) {
+            if (forward*forward+side*side>16 || forward==0 && side==0) continue;
+            for (int dy=-2;dy<=2;dy++) offsets.add(new BlockPos(side,dy,forward));
+        }
+        // Preserve the familiar two-block-ahead position; fill all gaps before considering distant cells.
+        offsets.sort(Comparator.comparingInt(p -> p.getX()*p.getX() + (p.getZ()-2)*(p.getZ()-2) + 2*p.getY()*p.getY()));
+        return List.copyOf(offsets);
+    }
     private static Endpoint nearby(ServerPlayer player, PortalPair old) {
         Direction facing = player.getDirection().getOpposite();
-        for (int distance : new int[]{2, 3, 4}) for (int side : new int[]{0, -2, 2}) {
-            BlockPos pos = player.blockPosition().relative(player.getDirection(), distance).relative(facing.getClockWise(), side);
-            Endpoint e = new Endpoint(player.level().dimension(), pos, facing);
+        var level = player.serverLevel();
+        for (var offset : SUMMON_OFFSETS) {
+            BlockPos pos = player.blockPosition().relative(player.getDirection(),offset.getZ())
+                    .relative(facing.getClockWise(),offset.getX()).above(offset.getY());
+            if (!level.getWorldBorder().isWithinBounds(pos) || level.isOutsideBuildHeight(pos)
+                    || level.isOutsideBuildHeight(pos.below()) || level.isOutsideBuildHeight(pos.above())) continue;
+            var support = level.getBlockState(pos.below());
+            if (!support.isFaceSturdy(level,pos.below(),Direction.UP) || ReturnTravel.hazardous(support)) continue;
+            Endpoint e = new Endpoint(level.dimension(), pos, facing);
+            if (PortalBlock.trigger(e).intersects(player.getBoundingBox()) || !canFit(player,e,old)) continue;
             var hit = player.level().clip(new net.minecraft.world.level.ClipContext(player.getEyePosition(), e.center().add(0, 1, 0),
                     net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, player) {
                 @Override public net.minecraft.world.phys.shapes.VoxelShape getBlockShape(BlockState state,
@@ -96,7 +121,7 @@ public final class Portals {
                             ? net.minecraft.world.phys.shapes.Shapes.empty() : super.getBlockShape(state,level,position);
                 }
             });
-            if (hit.getType() == HitResult.Type.MISS && canFit(player, e, old)) return e;
+            if (hit.getType() == HitResult.Type.MISS) return e;
         }
         return null;
     }
@@ -251,6 +276,29 @@ public final class Portals {
         } else message(player, "elsebase.message.endpoint_obstructed_or_protected_no_core_consumed");
     }
 
+    /** Suppress destination surfaces until the arriving body has actually left them, regardless of elapsed time. */
+    public static void arrived(ServerPlayer player) {
+        var contacts = new HashSet<Endpoint>();
+        var box = player.getBoundingBox();
+        var data = WorldState.get(player.server);
+        for (var pos : BlockPos.betweenClosed(BlockPos.containing(box.minX,box.minY,box.minZ),BlockPos.containing(box.maxX,box.maxY,box.maxZ))) {
+            var pair = data.at(player.level().dimension(),pos);
+            if (pair == null) continue;
+            var endpoint = player.level().dimension().equals(Elsebase.DIMENSION) ? pair.inner() : pair.external();
+            if (PortalBlock.trigger(endpoint).intersects(box)) contacts.add(endpoint);
+        }
+        if (contacts.isEmpty()) ARRIVAL_CONTACTS.remove(player.getUUID());
+        else ARRIVAL_CONTACTS.put(player.getUUID(),contacts);
+    }
+    /** Called each server tick and before contact processing, so stepping away re-arms normal travel. */
+    public static void updateArrivalContact(ServerPlayer player) {
+        var contacts = ARRIVAL_CONTACTS.get(player.getUUID());
+        if (contacts == null) return;
+        contacts.removeIf(endpoint -> !endpoint.dimension().equals(player.level().dimension())
+                || !PortalBlock.trigger(endpoint).intersects(player.getBoundingBox()));
+        if (contacts.isEmpty()) ARRIVAL_CONTACTS.remove(player.getUUID());
+    }
+
     /** Contact with the doorway interior triggers travel even while falling through unsupported frames. */
     public static void cross(ServerPlayer player, BlockPos surface) {
         if (player.isPassenger() || player.isVehicle() || !player.isAlive()) return;
@@ -260,6 +308,8 @@ public final class Portals {
         PortalPair pair = data.at(player.level().dimension(), surface);
         if (pair == null || !pair.permanent() && !pair.owner().equals(player.getUUID())) return;
         Endpoint source = player.level().dimension().equals(Elsebase.DIMENSION) ? pair.inner() : pair.external();
+        updateArrivalContact(player);
+        if (ARRIVAL_CONTACTS.getOrDefault(player.getUUID(),Set.of()).contains(source)) return;
         Endpoint target = dev.elsebase.preview.PortalView.target(data,pair,source);
         Vec3 center = source.center();
         Vec3 normal = Vec3.atLowerCornerOf(source.facing().getNormal());
@@ -298,8 +348,11 @@ public final class Portals {
         Vec3 velocity = pair.permanent() ? player.getDeltaMovement().yRot((float) -Math.toRadians(rotation)) : Vec3.ZERO;
         COOLDOWNS.put(player.getUUID(), now + 15);
         dev.elsebase.preview.PreviewServer.transfer(player,source,target,exit,player.getYRot()+rotation,player.getXRot());
+        var companions = LeashedTravel.capture(player);
         player.teleportTo(destination, exit.x, exit.y, exit.z, Set.of(), player.getYRot() + rotation, player.getXRot());
+        arrived(player);
         player.setDeltaMovement(velocity); player.fallDistance = 0;
+        companions.follow(player);
         InstantExpiry.used(player);
     }
     private static boolean complete(MinecraftServer server, Endpoint e) {

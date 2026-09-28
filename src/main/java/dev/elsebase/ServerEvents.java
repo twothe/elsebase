@@ -64,7 +64,7 @@ public final class ServerEvents {
     }
     @SubscribeEvent public void tick(ServerTickEvent.Post event) {
         dev.elsebase.template.TemplateServer.tick(event.getServer());
-        Portals.tick();
+        Portals.tick(event.getServer());
         InstantExpiry.tick(event.getServer());
         StructuralEditor.tick(event.getServer());
         dev.elsebase.preview.PreviewServer.tick(event.getServer());

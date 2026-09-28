@@ -23,6 +23,7 @@ import java.util.*;
 public final class PortalRenderChecks {
     private static int stage,ticks,vanillaScreens;
     private static Endpoint outside,inside;
+    private static List<UUID> companions=List.of();
     private static long started;
     private static int brokenModelCalls;
     private static boolean shaderFallback;
@@ -91,6 +92,12 @@ public final class PortalRenderChecks {
                 inner.setBlockAndUpdate(tank,Blocks.WATER.defaultBlockState());
                 WorldState.get(server).put(new PortalPair(UUID.randomUUID(),id,true,inside,outside));
                 player.teleportTo(outer,8.5,-60,12.5,180,0);
+                var cow=net.minecraft.world.entity.EntityType.COW.create(outer);
+                var sheep=net.minecraft.world.entity.EntityType.SHEEP.create(outer);
+                cow.moveTo(7.5,-60,11.5,0,0); sheep.moveTo(9.5,-60,11.5,0,0);
+                outer.addFreshEntity(cow); outer.addFreshEntity(sheep);
+                cow.setLeashedTo(player,true); sheep.setLeashedTo(player,true);
+                companions=List.of(cow.getUUID(),sheep.getUUID());
             });
         } else if(stage==2 && ++ticks>100 && shaderFallback) {
             require(PreviewClient.scene==null && !PreviewClient.renderer.ready,"Active shader pack keeps static fallback without scene streaming");
@@ -129,7 +136,8 @@ public final class PortalRenderChecks {
             require(brokenModelCalls==2,"Model quarantine resets on resource reload and retries exactly once");
             var appearance=dev.elsebase.client.TemplateModels.pattern(new BlockPos(135,64,136),Direction.UP);
             require(appearance!=null && appearance.at(7,8).block().equals("minecraft:yellow_concrete"),"Restarted preview reacquires evicted column appearances"); startCrossing(mc);
-        } else if(stage==4 && mc.level!=null && mc.level.dimension().equals(Elsebase.DIMENSION) && mc.screen==null && ++ticks>40) {
+        } else if(stage==4 && mc.level!=null && mc.level.dimension().equals(Elsebase.DIMENSION) && mc.screen==null && ++ticks>120) {
+            checkCompanions(mc);
             require(PortalTransition.replacedScreens==2,"Both vanilla transition screens replaced");
             require(vanillaScreens==0,"No vanilla receiving screen rendered during portal travel");
             require(PortalTransition.capturedArrivals==(shaderFallback?0:1),"Arrival presentation follows preview/shader availability");
@@ -145,6 +153,31 @@ public final class PortalRenderChecks {
             stage=7; mc.stop();
         }
     }
+    /** Check real server retention and client link delivery after ordinary AI and network ticks. */
+    private static void checkCompanions(Minecraft mc) {
+        var server=mc.getSingleplayerServer(); var playerId=mc.player.getUUID();
+        var entityIds=server.submit(() -> {
+            var player=server.getPlayerList().getPlayer(playerId);
+            var ids=new ArrayList<Integer>();
+            for(var uuid:companions) {
+                var entity=player.serverLevel().getEntity(uuid);
+                require(entity instanceof net.minecraft.world.entity.Leashable leash && leash.getLeashHolder()==player,
+                        "Server retains vanilla animal leash after arrival ticks: "+uuid);
+                ids.add(entity.getId());
+            }
+            return ids;
+        }).join();
+        for(int id:entityIds) require(mc.level.getEntity(id) instanceof net.minecraft.world.entity.Leashable leash && leash.getLeashHolder()==mc.player,
+                "Client receives retained animal leash: "+id);
+        server.submit(() -> {
+            for(var uuid:companions) {
+                var entity=server.getLevel(Elsebase.DIMENSION).getEntity(uuid);
+                ((net.minecraft.world.entity.Leashable)entity).dropLeash(true,false);
+                entity.discard();
+            }
+        }).join();
+    }
+
     private static void startCrossing(Minecraft mc) {
         stage=4; ticks=0; vanillaScreens=0; PortalTransition.replacedScreens=0;
         var server=mc.getSingleplayerServer(); var id=mc.player.getUUID();

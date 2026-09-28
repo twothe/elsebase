@@ -194,5 +194,6 @@
   "elsebase.message.combat_lock": "攻撃を受けた直後です。少し待ってからポータルを召喚してください。",
   "elsebase.message.no_known_return": "外部の行き先が不明です。まず Backdoor の外で即時ポータルを開いてください。",
   "elsebase.message.backdoor_start_blocked": "Backdoor のスポーン地点が塞がれています。管理者にマーカーとその下の床を空けてもらい、再接続してください。",
-  "elsebase.message.spawn_area_cleared": "緊急入場のため、塞がれたスポーン地点を空けました。"
+  "elsebase.message.spawn_area_cleared": "緊急入場のため、塞がれたスポーン地点を空けました。",
+  "elsebase.message.leashed_transfer_incomplete": "リードでつないだ一部の仲間が移動できませんでした。出発地点を確認し、移動先に十分な空間を確保してください。"
 }

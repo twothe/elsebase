@@ -90,7 +90,7 @@ public final class IntegrationTests {
             Portals.request(player);
             incoming(player, level.damageSources().mobAttack(attacker));
             helper.assertTrue(CombatLock.blocked(player), "Incoming mob attack starts the lock before mitigation");
-            Portals.tick();
+            Portals.tick(player.server);
             helper.assertTrue(data.instant(player.getUUID()) == null, "Attack after enqueue prevents summon on execution");
             Settings.COMBAT_LOCK_SECONDS.set(0);
             helper.assertTrue(!CombatLock.blocked(player), "Zero disables the lock immediately");
@@ -554,10 +554,207 @@ public final class IntegrationTests {
 
     private static void simulateCross(net.minecraft.server.level.ServerPlayer player,Endpoint endpoint) {
         var normal = net.minecraft.world.phys.Vec3.atLowerCornerOf(endpoint.facing().getNormal());
+        player.setPos(endpoint.center().add(normal.scale(1.5)));
+        Portals.updateArrivalContact(player);
         var before = endpoint.center().add(normal.scale(0.2));
         player.setPos(endpoint.center().subtract(normal.scale(0.2)));
         player.xo = before.x; player.yo = before.y; player.zo = before.z;
         Portals.cross(player,endpoint.position());
+    }
+
+    @GameTest(template = "empty", templateNamespace = Elsebase.ID, timeoutTicks = 400)
+    public static void groundedInstantPlacement(GameTestHelper helper) {
+        var player = helper.makeMockServerPlayerInLevel();
+        var level = helper.getLevel();
+        var data = WorldState.get(player.server);
+        try {
+            int scenario = 0;
+            for (var direction : Direction.Plane.HORIZONTAL) {
+                var origin = new BlockPos(2000 + scenario++ * 16,150,2000);
+                for (var pos : BlockPos.betweenClosed(origin.offset(-5,-3,-5),origin.offset(5,4,5)))
+                    level.setBlockAndUpdate(pos,Blocks.STONE.defaultBlockState());
+                // A two-cell dead-end corridor: one cell for the player, one for the door.
+                var door = origin.relative(direction);
+                for (var pos : List.of(origin,origin.above(),door,door.above())) level.setBlockAndUpdate(pos,Blocks.AIR.defaultBlockState());
+                player.teleportTo(level,origin.getX()+0.5,150,origin.getZ()+0.5,direction.toYRot(),0);
+                Portals.summon(player);
+                var pair = data.instant(player.getUUID());
+                helper.assertTrue(pair != null && pair.external().position().equals(door),"Short one-wide two-high corridor accepts doorway facing " + direction);
+                helper.assertTrue(ReturnTravel.safeStanding(player,level,pair.external().center()),"Tight doorway remains a safe return position");
+            }
+            for (int dy : new int[]{1,-1}) {
+                var origin = new BlockPos(2096 + dy*16,150,2000);
+                for (var pos : BlockPos.betweenClosed(origin.offset(-5,-3,-5),origin.offset(5,4,5)))
+                    level.setBlockAndUpdate(pos,Blocks.AIR.defaultBlockState());
+                level.setBlockAndUpdate(origin.below(),Blocks.STONE.defaultBlockState());
+                var door = origin.offset(0,dy,2);
+                level.setBlockAndUpdate(door.below(),Blocks.STONE.defaultBlockState());
+                player.teleportTo(level,origin.getX()+0.5,150,origin.getZ()+0.5,0,0);
+                Portals.summon(player);
+                helper.assertTrue(data.instant(player.getUUID()).external().position().equals(door),"Select supported one-block ledge at height offset " + dy);
+                helper.assertTrue(ReturnTravel.safeStanding(player,level,data.instant(player.getUUID()).external().center()),"Ledge doorway has safe return footing");
+            }
+            var origin = new BlockPos(2144,150,2000);
+            for (var pos : BlockPos.betweenClosed(origin.offset(-5,-3,-5),origin.offset(5,4,5)))
+                level.setBlockAndUpdate(pos,Blocks.AIR.defaultBlockState());
+            level.setBlockAndUpdate(origin.below(),Blocks.STONE.defaultBlockState());
+            var sideDoor = origin.offset(1,0,2);
+            level.setBlockAndUpdate(sideDoor.below(),Blocks.STONE.defaultBlockState());
+            player.teleportTo(level,origin.getX()+0.5,150,origin.getZ()+0.5,0,0);
+            Portals.summon(player);
+            var last = data.instant(player.getUUID());
+            helper.assertTrue(last.external().position().equals(sideDoor),"Odd lateral offsets are searched instead of choosing air ahead");
+            level.removeBlock(sideDoor.below(),false);
+            Portals.summon(player);
+            helper.assertTrue(data.instant(player.getUUID()).equals(last),"No supported candidate preserves the existing pair instead of moving it into air");
+        } finally { player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed")); }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", templateNamespace = Elsebase.ID, timeoutTicks = 400)
+    public static void portalArrivalRequiresLeavingSurface(GameTestHelper helper) {
+        helper.runAfterDelay(60, () -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            var outside = helper.getLevel();
+            var inside = player.server.getLevel(Elsebase.DIMENSION);
+            var origin = new BlockPos(2208,150,2000);
+            for (var pos : BlockPos.betweenClosed(origin.offset(-5,-2,-5),origin.offset(5,3,5)))
+                outside.setBlockAndUpdate(pos,pos.getY()==149 ? Blocks.STONE.defaultBlockState() : Blocks.AIR.defaultBlockState());
+            player.teleportTo(outside,origin.getX()+0.5,150,origin.getZ()+0.5,0,0);
+            Portals.summon(player);
+            var pair = WorldState.get(player.server).instant(player.getUUID());
+            helper.assertTrue(pair != null,"Arrival fixture has actual portal frames");
+            // Only the portal's own cell has footing. Returning must land inside its trigger.
+            for (var pos : BlockPos.betweenClosed(origin.offset(-5,-1,-5),origin.offset(5,-1,5)))
+                if (!pos.equals(pair.external().position().below())) outside.removeBlock(pos,false);
+            var center = pair.inner().center();
+            player.teleportTo(inside,center.x,center.y,center.z,0,0);
+            ReturnTravel.escape(player,pair.external(),pair.external().center().add(0,0,-0.9),pair.inner());
+            helper.assertTrue(player.serverLevel()==outside && PortalBlock.trigger(pair.external()).intersects(player.getBoundingBox()),"Safe return lands in the only supported portal cell");
+            helper.runAfterDelay(25, () -> {
+                Portals.cross(player,pair.external().position());
+                helper.assertTrue(player.serverLevel()==outside,"Remaining on arrival surface beyond cooldown never sends player back");
+                var step = pair.external().position().north();
+                outside.setBlockAndUpdate(step.below(),Blocks.STONE.defaultBlockState());
+                player.setPos(net.minecraft.world.phys.Vec3.atBottomCenterOf(step));
+                helper.runAfterDelay(2, () -> {
+                    simulateCross(player,pair.external());
+                    helper.assertTrue(player.serverLevel()==inside,"Leaving and deliberately re-entering re-arms the portal");
+                    helper.runAfterDelay(25, () -> {
+                        Portals.cross(player,pair.inner().position());
+                        helper.assertTrue(player.serverLevel()==inside,"Personal anchor arrival also stays put after cooldown");
+                        player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed"));
+                        helper.succeed();
+                    });
+                });
+            });
+        });
+    }
+
+    @GameTest(template = "empty", templateNamespace = Elsebase.ID, timeoutTicks = 400)
+    public static void leashedPortalRoundTrip(GameTestHelper helper) {
+        helper.runAfterDelay(15, () -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            var outside = helper.getLevel(); var inside = player.server.getLevel(Elsebase.DIMENSION);
+            for (var pos : BlockPos.betweenClosed(new BlockPos(1800,149,1800),new BlockPos(1815,149,1815))) outside.setBlockAndUpdate(pos,Blocks.STONE.defaultBlockState());
+            player.teleportTo(outside,1807.5,150,1807.5,0,0);
+            var cow = companion(outside,net.minecraft.world.entity.EntityType.COW,1806.5,150,1807.5);
+            cow.setNoAi(false);
+            cow.setCustomName(net.minecraft.network.chat.Component.literal("Travelling cow")); cow.setAge(-1200); cow.setLeashedTo(player,true);
+            var sheep = companion(outside,net.minecraft.world.entity.EntityType.SHEEP,1805.5,150,1807.5); sheep.setNoAi(false); sheep.setLeashedTo(player,true);
+            var boat = companion(outside,net.minecraft.world.entity.EntityType.BOAT,1807.5,150,1805.5); boat.setLeashedTo(player,true);
+            var pig = companion(outside,net.minecraft.world.entity.EntityType.PIG,1807.5,150,1805.5);
+            var cart = companion(outside,net.minecraft.world.entity.EntityType.CHEST_MINECART,1807.5,150,1805.5);
+            cart.setItem(0,new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND,7));
+            var nested = companion(outside,net.minecraft.world.entity.EntityType.CHICKEN,1807.5,150,1805.5);
+            helper.assertTrue(pig.startRiding(boat,true) && cart.startRiding(boat,true) && nested.startRiding(cart,true),"Fixture has two boat passengers and a nested passenger");
+            var pet = companion(outside,net.minecraft.world.entity.EntityType.WOLF,1804.5,150,1807.5); pet.setTame(true,true); pet.setOwnerUUID(player.getUUID());
+            outside.setBlockAndUpdate(new BlockPos(1803,150,1807),Blocks.OAK_FENCE.defaultBlockState());
+            var knot = net.minecraft.world.entity.decoration.LeashFenceKnotEntity.getOrCreateKnot(outside,new BlockPos(1803,150,1807));
+            var tethered = companion(outside,net.minecraft.world.entity.EntityType.COW,1803.5,150,1807.5); tethered.setLeashedTo(knot,true);
+            var ids = List.of(cow.getUUID(),sheep.getUUID(),boat.getUUID(),pig.getUUID(),cart.getUUID(),nested.getUUID());
+            helper.startSequence().thenWaitUntil(() -> helper.assertTrue(outside.getEntity(cow.getUUID())==cow,"Source entities are tracked before portal contact")).thenExecute(() -> {
+            Portals.summon(player); var pair = WorldState.get(player.server).instant(player.getUUID());
+            helper.assertTrue(pair != null,"Fixture summons an actual personal portal");
+            helper.assertTrue(leadDropsDuring(() -> simulateCross(player,pair.external()))==0,"Entry does not duplicate or drop leads");
+            helper.assertTrue(player.serverLevel()==inside,"Player enters through the actual portal");
+            helper.startSequence().thenWaitUntil(() -> helper.assertTrue(inside.getEntity(cow.getUUID())!=null,"Destination chunk starts tracking arrivals")).thenExecute(() -> {
+            assertCarried(helper,player,ids);
+            helper.assertTrue(pet.level()==outside && tethered.level()==outside && inside.getEntity(pet.getUUID())==null && inside.getEntity(tethered.getUUID())==null && tethered.getLeashHolder()==knot,"Unleashed pets and fence-held animals remain untouched");
+            helper.assertTrue(((net.minecraft.world.entity.animal.Cow)inside.getEntity(cow.getUUID())).isBaby(),"Age survives native transfer");
+            helper.assertTrue(inside.getEntity(cow.getUUID()).getCustomName().getString().equals("Travelling cow"),"Name survives native transfer");
+            helper.runAfterDelay(120, () -> {
+                assertCarried(helper,player,ids);
+                helper.assertTrue(leadDropsDuring(() -> simulateCross(player,pair.inner()))==0,"Return does not duplicate or drop leads");
+                helper.assertTrue(player.serverLevel()==outside,"Player returns through the actual portal");
+                helper.startSequence().thenWaitUntil(() -> helper.assertTrue(outside.getEntity(cow.getUUID())!=null,"Return chunk starts tracking arrivals")).thenExecute(() -> {
+                helper.runAfterDelay(120, () -> {
+                assertCarried(helper,player,ids);
+                for (var id : ids) { helper.assertTrue(inside.getEntity(id)==null,"No duplicate entity remains in the source dimension"); outside.getEntity(id).discard(); }
+                pet.discard(); tethered.discard(); knot.discard();
+                player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed")); helper.succeed();
+                });
+                });
+            });
+            });
+            });
+        });
+    }
+
+    private static <T extends net.minecraft.world.entity.Entity> T companion(net.minecraft.server.level.ServerLevel level,net.minecraft.world.entity.EntityType<T> type,double x,double y,double z) {
+        T entity=type.create(level); entity.moveTo(x,y,z,0,0);
+        if(entity instanceof net.minecraft.world.entity.Mob mob) mob.setNoAi(true);
+        level.addFreshEntity(entity); return entity;
+    }
+
+    /** Count this synchronous operation's real item spawns, independent of leftovers in the persistent test world. */
+    private static int leadDropsDuring(Runnable action) {
+        var count=new java.util.concurrent.atomic.AtomicInteger();
+        java.util.function.Consumer<net.neoforged.neoforge.event.entity.EntityJoinLevelEvent> observer=event -> {
+            if(event.getEntity() instanceof net.minecraft.world.entity.item.ItemEntity item && item.getItem().is(net.minecraft.world.item.Items.LEAD)) count.addAndGet(item.getItem().getCount());
+        };
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(observer);
+        try { action.run(); return count.get(); } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(observer); }
+    }
+
+    private static void assertCarried(GameTestHelper helper,net.minecraft.server.level.ServerPlayer player,List<UUID> ids) {
+        var level=player.serverLevel();
+        for(var id:ids) helper.assertTrue(level.getEntity(id)!=null,"Every leashed entity and nested passenger arrives with its UUID");
+        for(int i=0;i<3;i++) helper.assertTrue(((net.minecraft.world.entity.Leashable)level.getEntity(ids.get(i))).getLeashHolder()==player,"Leash remains attached to the travelling player");
+        var boat=level.getEntity(ids.get(2)); var cart=level.getEntity(ids.get(4));
+        helper.assertTrue(level.getEntity(ids.get(3)).getVehicle()==boat && cart.getVehicle()==boat && level.getEntity(ids.get(5)).getVehicle()==cart,"All passenger relationships survive");
+        helper.assertTrue(((net.minecraft.world.entity.vehicle.MinecartChest)cart).getItem(0).getCount()==7,"Vehicle inventory survives");
+        for(var id:ids) { var entity=level.getEntity(id); helper.assertTrue(!level.getBlockCollisions(entity,entity.getBoundingBox()).iterator().hasNext(),"Transferred entity has collision-free body space"); }
+    }
+
+    @GameTest(template = "empty", templateNamespace = Elsebase.ID, timeoutTicks = 240)
+    public static void leashedTravelRefusals(GameTestHelper helper) {
+        var player=helper.makeMockServerPlayerInLevel(); var outside=helper.getLevel(); var inside=player.server.getLevel(Elsebase.DIMENSION);
+        player.teleportTo(outside,1848.5,150,1848.5,0,0);
+        for(var pos:BlockPos.betweenClosed(new BlockPos(1840,149,1840),new BlockPos(1855,149,1855))) outside.setBlockAndUpdate(pos,Blocks.STONE.defaultBlockState());
+        var boat=companion(outside,net.minecraft.world.entity.EntityType.BOAT,1848.5,150,1846.5); boat.setLeashedTo(player,true);
+        var cow=companion(outside,net.minecraft.world.entity.EntityType.COW,1848.5,150,1846.5); cow.startRiding(boat,true);
+        helper.startSequence().thenWaitUntil(() -> helper.assertTrue(outside.getEntity(boat.getUUID())==boat,"Source boat is tracked before capture")).thenExecute(() -> {
+        // A real NeoForge denial must keep the root and its passengers alive at the source, with one returned lead.
+        java.util.function.Consumer<net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent> deny=event -> { if(event.getEntity()==boat) event.setCanceled(true); };
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(deny);
+        try {
+            var travel=LeashedTravel.capture(player); player.teleportTo(inside,1208.5,65,1208.5,0,0);
+            int drops=leadDropsDuring(() -> travel.follow(player));
+            helper.assertTrue(!boat.isRemoved() && !cow.isRemoved() && cow.getVehicle()==boat && inside.getEntity(boat.getUUID())==null,"Travel veto preserves the source passenger group");
+            helper.assertTrue(boat.getLeashHolder()==null,"Refusal never leaves a cross-dimensional leash");
+            helper.assertTrue(drops==1,"Refused group returns exactly one lead");
+        } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(deny); boat.discard(); cow.discard(); }
+        player.teleportTo(outside,1848.5,150,1848.5,0,0);
+        var blocked=companion(outside,net.minecraft.world.entity.EntityType.COW,1847.5,150,1848.5); blocked.setLeashedTo(player,true);
+        var pending=LeashedTravel.capture(player);
+        for(var pos:BlockPos.betweenClosed(new BlockPos(1248,62,1248),new BlockPos(1263,69,1263))) inside.setBlockAndUpdate(pos,Blocks.STONE.defaultBlockState());
+        inside.setBlockAndUpdate(new BlockPos(1256,65,1256),Blocks.AIR.defaultBlockState()); inside.setBlockAndUpdate(new BlockPos(1256,66,1256),Blocks.AIR.defaultBlockState());
+        player.teleportTo(inside,1256.5,65,1256.5,0,0); pending.follow(player);
+        helper.assertTrue(!blocked.isRemoved() && blocked.level()==outside && blocked.getLeashHolder()==null,"Blocked companion landing leaves the animal at source and lets the player escape");
+        helper.assertTrue(inside.getBlockState(new BlockPos(1257,65,1256)).is(Blocks.STONE),"Companion placement never clears surrounding construction");
+        blocked.discard(); player.connection.disconnect(net.minecraft.network.chat.Component.literal("GameTest completed")); helper.succeed();
+        });
     }
 
     @GameTest(template = "empty", templateNamespace = Elsebase.ID, timeoutTicks = 400)

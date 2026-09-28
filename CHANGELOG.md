@@ -2,6 +2,9 @@
 
 ## 1.1.0 — 2026-09-24
 
+- Instant portal placement now finds short 1×2 corridors, adjacent lateral spaces and nearby terrain steps, requiring safe footing instead of choosing floating positions. Arriving inside a portal no longer sends players straight back: that surface re-arms only after they leave it.
+
+- Leashed entities follow players through personal and permanent portals in both directions, including boats and nested passengers. Leads, entity data and vehicle inventories are retained; unconnected pets keep their normal behavior. Unsafe or denied companions remain behind with a warning and their disconnected leads returned.
 - Fixed rooms retaining gray structural textures when themes arrive during Sodium's initial mesh build, including direct Backdoor starts. Appearance rebuilds now remain pending until the section is ready.
 - Fixed personal entry being blocked by construction on or above the spawn anchor. Entry, initial starts and respawns first find safe nearby footing; if none exists, a bounded emergency repair clears the anchor column subject to protection permissions. Outside summons no longer require a clear anchor.
 

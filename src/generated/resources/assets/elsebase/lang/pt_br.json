@@ -194,5 +194,6 @@
   "elsebase.message.combat_lock": "Você acabou de sofrer um ataque. Espere um pouco antes de invocar seu portal.",
   "elsebase.message.no_known_return": "Nenhum destino externo conhecido. Primeiro abra um portal instantâneo fora da Backdoor.",
   "elsebase.message.backdoor_start_blocked": "Seu ponto inicial na Backdoor está bloqueado. Peça a um administrador para liberar seu marcador e o piso abaixo dele; depois reconecte-se.",
-  "elsebase.message.spawn_area_cleared": "Seu ponto de chegada bloqueado foi liberado para permitir a entrada de emergência."
+  "elsebase.message.spawn_area_cleared": "Seu ponto de chegada bloqueado foi liberado para permitir a entrada de emergência.",
+  "elsebase.message.leashed_transfer_incomplete": "Alguns companheiros presos por laços não puderam seguir. Verifique a origem e libere espaço no destino."
 }
